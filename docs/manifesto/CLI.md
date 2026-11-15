@@ -1,561 +1,680 @@
-# CLI Architecture & Subsystem Specification
+# CLI Contract & Reference
 
-## oXyFlow — Native & Web Command-Line Interface
+## oXyFlow — `oxy` and the In-App CLI
 
-### 🎯 Vision
+This document describes the command-line interface as it behaves today: the native `oxy` binary, the same command set running inside the desktop app, and the browser sandbox emulator. Planned behavior is marked **[PLANNED]** and linked to [MASTERMAP.md](MASTERMAP.md). Defects found in review are listed in [Known issues](#11-known-issues), not described as behavior.
 
-The oXyFlow CLI provides a high-velocity, deterministic, and scriptable interface to the time tracking engine. It is designed to serve both human operators (from keyboard-driven power users to terminal beginners) and automated headless daemons (CI/CD pipelines, Git hooks, cron schedulers).
-
-The CLI is built around **strict architectural decoupling**: it lives as an isolated Rust module that directly consumes core domain contracts (`Engine`, `Persistence`), strictly isolated from the Tauri desktop GUI windowing runtime.
+The clap definitions in `src-tauri/src/cli/parser/` are the source of truth for commands and flags. `oxy --help` and `oxy <command> --help` print them.
 
 ---
 
-## 🏛 System Architecture & Modular Isolation
+## 1. Scope & Stability
 
-### Dual-Runtime Architectural Topology
+| Surface | Where it runs | Executes against |
+| --- | --- | --- |
+| `oxy` binary | Any shell, scripts, CI | SQLite database (see [Database selection](#21-database-selection)) |
+| In-app CLI, live mode | Desktop app (Tauri): CLI drawer and CLI view | The app's SQLite database, through the `cli_execute` IPC command and the same Rust dispatcher as `oxy` |
+| Sandbox emulator | Desktop and browser, after `sandbox on` | In-memory demo data in `SandboxEmulatorStore` |
+
+The CLI module (`src-tauri/src/cli/`) imports no Tauri GUI types and talks to the application only through `Engine` and `Persistence`.
+
+**Contract** (changes need a version bump or a CHANGELOG entry and an update here):
+
+- exit codes ([section 4.4](#44-exit-codes));
+- semantic error codes and their exit-code mapping ([section 4.5](#45-error-codes));
+- success envelope shape, every `schema` / `schemaVersion` pair and the error envelope keys ([section 4](#4-envelopes));
+- the `oxy.report` v2 document, its JSON Schema and the XML XSD v2 ([section 8](#8-reports--export-formats));
+- the CSV column sets and the `-q` output of each command ([section 3.2](#32-quiet-mode--q)).
+
+**Not contract:** human-readable text (messages, emoji markers, table layout, help wording). Scripts must use `--json` / `--machine` or `-q`.
+
+---
+
+## 2. Invocation
 
 ```text
-                  ┌───────────────────────────────────────────────┐
-                  │                 ENTRY POINTS                  │
-                  └───────┬───────────────────────────────┬───────┘
-                          │                               │
-        ┌─────────────────▼───────────────┐     ┌─────────▼─────────────────────┐
-        │       Native Shell / CI         │     │     React Desktop / Web       │
-        │   (Terminal / Bash / Cmd)       │     │   (CliInterface / CliDrawer)  │
-        └─────────────────┬───────────────┘     └─────────┬─────────────────────┘
-                          │                               │
-                          │                               ▼
-                          │                     CliRouter (IRouter<ICliClient>)
-                          │                     (src/common/cli/CliRouter.ts)
-                          │                               │
-                          │            ┌──────────────────┴──────────────────┐
-                          │            │ Desktop (TauriCliClient)            │ Browser (Sandbox)
-                          │            │ [IPC: cli_execute]                  │
-                          │            ▼                                     ▼
-                          └──────────► Native Rust CLI Dispatcher    SandboxCommandRouter
-                                      (src-tauri/src/cli/*)         (src/features/cli/sandbox/*)
-                                               │                               │
-        ═══════════════════════════════════════╪═══════════════════════════════╪═══════ Module Boundary
-                                               │                               │
-                                      ┌────────▼────────────┐         ┌────────▼────────────┐
-                                      │ Engine & Repos      │         │ SandboxEmulatorStore│
-                                      │ (Rust Core Domain)  │         │ (In-Memory State)   │
-                                      └────────┬────────────┘         └─────────────────────┘
-                                               │
-                                               ▼
-                                         SQLite Database
-                                         & CSV/API Sinks
+oxy [GLOBAL FLAGS] [COMMAND] [SUBCOMMAND] [ARGS] [FLAGS]
 ```
 
-### Frontend CLI Routing & Runtime Integration
+Global flags are accepted before or after the command (`oxy --json status` and `oxy status --json` are equivalent). Running `oxy` with no command prints the dashboard ([section 7.1](#71-flow-commands)).
 
-1. **Desktop Runtime (Tauri):** The in-app terminal delegates domain commands to the native Rust CLI via the `cli_execute` Tauri IPC command (`TauriCliClient`). The native binary parser (Clap) and domain dispatcher execute against SQLite, ensuring identical output formatting, validation, and error envelopes. After any mutating command, `DataContext.refreshData()` is triggered, synchronizing open GUI views instantaneously.
-2. **Browser Runtime & Simulator:** In web environments without native IPC, or when sandbox mode is explicitly activated (`sandbox on`), commands route through `SandboxCommandRouter` and execute against `SandboxEmulatorStore` in memory, guaranteeing zero side-effects to storage.
-3. **Shell Built-ins:** Interactive utility commands (`clear`, `sandbox [on|off|reset|status]`, `break [duration]`) are handled directly by the frontend shell orchestrator without reaching backend persistence.
+### 2.1. Database selection
 
-### Module Isolation Invariants
+The database path is resolved once, in this order:
 
-1. **Zero Tauri GUI Coupling:** The Rust CLI module (`src-tauri/src/cli/`) must NEVER import `AppState`, `tauri::AppHandle`, `tauri::WebviewWindow`, `tauri::Manager`, or UI tray controllers. It must remain purely headless.
-2. **Direct Domain Contract Invocation:** The CLI interacts with the application exclusively through:
-   - `oxyflow_timelog::engine::Engine` (timers, metrics calculation, temporal validation)
-   - `oxyflow_timelog::persistence::Persistence` (repositories: projects, tasks, subtasks, config, holidays, patches)
-3. **Library & Workspace Decoupling Roadmap:** The CLI is structured so it can cleanly transition into a standalone crate/library:
+1. `--db <path>`. The file **must already exist**; otherwise the command fails with `STO_SQLITE_INIT` (exit 3) before anything is created. Only `db restore` may name a path that does not exist yet.
+2. `OXY_DB_PATH`, then `OXYTIME_DB_PATH`. The file is created on first use, along with its parent directories.
+3. The OS default, created on first run:
 
-   ```text
-   Future Cargo Workspace:
-   ├── crates/oxy-engine          # Core timer logic, validation, temporal algorithms (lib)
-   ├── crates/oxy-persistence     # SQLite repositories, schema, migrations (lib)
-   ├── crates/oxy-sinks           # CSV sink, webhook dispatcher, export serializers (lib)
-   ├── crates/oxy-cli             # Command parser, formatters, interactive prompts (lib + bin)
-   ├── crates/oxy-tray            # Desktop tray icon, native notifications (lib)
-   └── src-tauri                  # Tauri wrapper, IPC commands, window orchestration (bin)
-   ```
-
-4. **Dual-Runtime Parity:** Every command, argument, flag, error code, and status output has a 1-to-1 parity contract between the Native Rust CLI binary and the In-App Web Terminal Emulator (`src/features/cli/`).
-
----
-
-## 👥 The Four Persona Models
-
-```mermaid
-graph TD
-    User["CLI Operator"] --> Identify{"Classify Persona"}
-    
-    Identify -->|Speed, Shortcuts, Exports| Alex["1. Power User (Alex)"]
-    Identify -->|Events, Triggers, Headless| Daemon["2. Automated Daemon (Machine)"]
-    Identify -->|Guidance, Help, Simple| Maya["3. Beginner User (Maya)"]
-    Identify -->|Macros, Aliases, Batch| Masks["4. Action Masks & Macros"]
-
-    Alex --> AlexActions["• Atomic 'switch'<br>• Unicode Tree (report)<br>• Multi-format Exports (CSV, HTML, JSON, XML, ODS, XLSX)<br>• Unix Pipes (stdout | jq)"]
-    Daemon --> DaemonActions["• Strict English (--lang en)<br>• Structured JSON to stderr<br>• POSIX Exit Codes (0..5)<br>• Idempotent Execution"]
-    Maya --> MayaActions["• 'Did you mean?' Typo Catch<br>• Interactive Parameter Prompts<br>• Visual Summary Cards<br>• Interactive Self-Healing"]
-    Masks --> MaskActions["• Shorthand Aliases (mask set)<br>• Dynamic Tokens ($1, $LAST)<br>• Built-in Compound Actions"]
-```
-
-### 1. The Power User (Alex — Keyboard Maestro)
-
-- **Primary Goal:** Sub-second time tracking without touching the mouse, terminal reports with Unicode trees, instant export for invoices/clients across all standard formats (CSV, HTML, JSON, XML, ODS, XLSX).
-- **Key Commands:** `oxy switch <id>`, `oxy report --week`, `oxy report -f html -o ./rep.html`, `oxy report -f json -o - | jq .`.
-
-### 2. The Automated System / Daemon (Machine / CI / Git Hooks)
-
-- **Primary Goal:** Headless event triggers, deterministic non-interactive execution, zero ambiguity.
-- **Strict Invariant:** Always outputs in **English** (`en`) by default, even if the user has configured Polish (`pl`), German (`de`), or Spanish (`es`) in the desktop GUI. Machine locale can be explicitly configured via `cli_machine_locale`.
-- **Default Locale Semantics:** `en` is the active, effective default. If `cli_machine_locale` is absent from SQLite, `oxy config get cli_machine_locale` returns `en`. `oxy config ls` lists only physically persisted database keys, meaning absence in `config ls` does not indicate an unconfigured or broken locale.
-- **Key Commands:** `oxy timer start <id> --machine --json`, `oxy status --machine --json`, `oxy config get cli_machine_locale`.
-- **Stream Discipline:** Clean machine data exclusively to `stdout`, structured JSON error envelopes and diagnostic logs (`env_logger`) strictly to `stderr`, non-zero POSIX exit codes (`1`..`5`). Logs never pollute `stdout`.
-
-### 3. The Beginner User (Maya — Junior Developer)
-
-- **Primary Goal:** Zero frustration, welcoming feedback, clear daily summary, smart guidance when mistakes happen.
-- **Features:** Fuzzy Levenshtein typo suggestion ("Did you mean?"), interactive prompts when parameters are omitted in TTY mode, friendly summary cards (`oxy summary`), interactive self-healing.
-
-### 4. Action Masks & Macros (Productivity Supercharger)
-
-- **Primary Goal:** Eliminate repetitive typing by binding custom aliases and parameterized command sequences.
-- **Features:** `oxy mask set <name> "<template>"`, positional variable injection (`$1`, `$2`, `$LAST_TASK`), built-in compound actions (`switch`, `wrap-up`).
-
----
-
-## 📋 Typical Actions Lifecycle Matrix
-
-All commands follow the unified canonical hierarchy: `oxy <domain> <action> [args] [flags]`, with top-level shortcuts for primary daily tasks (`start`, `stop`, `switch`, `status`, `today` / `summary`). The `wrap-up` compound action is planned.
-
-> The matrix below describes the target command design. The authoritative list of implemented commands and flags is the clap parser in `src-tauri/src/cli/parser/` (`oxy --help`).
-
-| Domain | Action | Command Syntax | Power User / Machine Flag | Beginner Interactive Behavior |
-| :--- | :--- | :--- | :--- | :--- |
-| **Project** | Create | `oxy project add "<name>" [--rate <amount>] [--rate-cents <cents>] [--currency <CODE>]` | `--machine --json` | Prompts for project name and color |
-| **Project** | Archive | `oxy project archive <id>` | Soft-archives with `archived = true` | Displays confirmation with affected tasks |
-| **Project** | List | `oxy project list` | Tabular or JSON output | Color-coded badges and active task counts |
-| **Project** | Rename / update | `oxy project rename <id> [<new-name>] [--rate <amount>] [--rate-cents <cents>] [--currency <CODE>]` | Updates entity and billing configuration | Prompts for new name |
-| **Task** | Create | `oxy task add -p <project-id> "<name>" [--rate <amount>] [--rate-cents <cents>]` | Instant return with generated ID | Prompts to pick project and enter title |
-| **Task** | Archive | `oxy task archive <id> -p <project-id>` | Soft-archives task and subtasks | Asks confirmation |
-| **Task** | Complete | `oxy task complete <id>` | Toggles `completed: true` | Prints celebratory checkmark |
-| **Task** | List | `oxy task list [-p <project-id>]` | Supports filtering and sorting | Hierarchical list with subtasks |
-| **Task** | Billing rate | `oxy task rate <id> <amount\|inherit\|none> [--currency <CODE>] [--cents]` | Sets override, clears it to inherit, or applies currency override | N/A (explicit arguments) |
-| **Subtask** | Create | `oxy subtask create -t <parent-id> "<name>"` | Links subtask to parent | Prompts for parent task selection |
-| **Timer** | Start | `oxy timer start <task-id>` | Starts active log in SQLite; starting an already running task is a no-op (`alreadyRunning`), and tasks stopped as a side effect are reported (`stoppedTaskIds`) | Displays green running timer badge |
-| **Timer** | Stop | `oxy timer stop [--all] [--if-running]` | Stops the active timer; fails with `ENG_TIMER_INACTIVE` (exit 5) when nothing is running. `--if-running` succeeds as a no-op instead; `--all` stops all active timers | Prints total elapsed time for session |
-| **Timer** | Switch | `oxy switch <new-task-id>` | Atomic stop old + start new ($<100\text{ms}$) | Explains previous and new task state |
-| **Timer** | Quick-Log | `oxy timer log <task-id> <duration> ["<note>"]` | Direct retroactive log insertion | Confirms retroactive time captured |
-| **Timer** | Status | `oxy status` | Single-line or JSON status | Visual card with live running timer |
-| **Log** | Add | `oxy log add <target> [<duration>] ["<note>"] [--from <iso>] [--to <iso>]` | Direct retroactive log insertion | Confirms retroactive time captured |
-| **Log** | Edit | `oxy log edit <id> [--duration <dur>] [--note <note>] [--start <iso>] [--end <iso>] [--task <target>] --reason <text>` | Updates time log with required audit reason (`--reason <text>` or `-r <text>`) | Prompts for edit fields and audit reason |
-| **Log** | List | `oxy log list [-p <proj>] [-t <task>] [--today\|--yesterday\|--week\|--last-week\|--month\|--last-month] [--from <iso>] [--to <iso>] [--tz <iana>] [--limit <n>]` | Filtered tabular or JSON list (no default limit in machine mode) | Displays filtered log entries (default 20 + footer in human mode) |
-| **Log** | Remove | `oxy log rm <id> [--yes\|-y]` | Deletes time log entry; returns deleted entry in JSON mode | In interactive TTY, prompts confirmation (`Remove entry <short id> (45m, <task name>)? [y/N]`) unless `--yes`/`-y` or machine mode |
-| **Report** | Tree | `oxy report [--today\|--yesterday\|--week\|--last-week\|--month\|--last-month] [--tz <iana>]` | Unicode box-drawing with bars (`--format table`, the default) | Easy-to-read hierarchy |
-| **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [--tz <iana>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
-| **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
-| **Report** | Export | `oxy report --format <table\|html\|csv\|json\|xml\|ods\|xlsx> [--variant full\|summary] [-o <path>\|-] [--csv-delimiter <,\|;\|tab>] [--bom]` | Writes the report in the chosen format to a file (`-o <path>`) or to `stdout` (`-o -`); see the format table in the Report Export Subsystem. Serialization errors yield `SNK_SERIALIZATION` (exit code `1`) | Interactive format selector |
-| **Report** | Schema | `oxy report schema [--format json\|xml] [--target report\|envelope] [-o <path>]` | Emits the generated JSON Schema (draft 2020-12) of `oxy.report` v2 (default), the JSON Schema of the machine envelope (`--target envelope`), or the XSD of the `--format xml` export (`--format xml`) to stdout or file; `--format xml --target envelope` is a syntax error (exit code `2`) | Download schema |
-| **Report** | Stream | `oxy report -f json -o - \| jq .` | The bare `ReportDocument` to `stdout`, no envelope and no status line | N/A (interactive terminal) |
-| **Doctor** | Diagnostics | `oxy doctor` | Emits diagnostic health report (`--json` envelope) | Tests DB access, integrity, schema, sinks |
-| **Database** | Backup | `oxy db backup <path>` | Lock-free SQLite snapshot via Online Backup API | Reports created backup file |
-| **Database** | Restore | `oxy db restore <path>` | Restores state with schema integrity verification | Confirms restored database |
-| **Config** | Set | `oxy config set <key> <val>` | Sets SQLite config entry (e.g. `cli_machine_locale`) | Validates supported keys and values |
-| **Config** | Get | `oxy config get <key>` | Gets effective config value (defaults to `en` for `cli_machine_locale`) | Displays active configuration value |
-| **Config** | List | `oxy config ls` | Lists physically persisted SQLite configuration entries | Displays table of saved config pairs |
-| **Sink** | Set CSV | `oxy sink set csv --dir <path>` | Configures local CSV audit log | Prompts for directory path |
-| **Sink** | Set API | `oxy sink set webhook --url <url> -t <token>` | Updates external webhook target | Tests connectivity and saves |
-| **Sink** | Test | `oxy sink test` | Synthetic event verification | Displays green checkmarks for active sinks |
-| **Mask** | Set | `oxy mask set <name> "<template>"` | Saves alias in SQLite `cli_aliases` | Validates syntax and explains variables |
-| **Mask** | List | `oxy mask list` | Lists registered aliases | Displays examples of how to run them |
-| **Mask** | Execute | `oxy <mask-name> [args]` | Preprocessed substitution of `$1..$9` tokens | Seamless alias execution |
-
----
-
-### Period Flags & Timezone (Implemented)
-
-`log list` and `report` (every format, including exports) accept the same period flags. `today` and the bare `oxy` dashboard accept `--tz` only; their period is always the current local day.
-
-| Flag | Meaning |
+| OS | Default path |
 | --- | --- |
-| `--today`, `--yesterday` | Local calendar day |
-| `--week`, `--last-week` | Local calendar week, **Monday through Sunday** |
-| `--month`, `--last-month` | Local calendar month |
-| `--from <v>`, `--to <v>` | Custom bounds: `YYYY-MM-DD`, `YYYY-MM-DD HH:MM:SS` or RFC3339 |
-| `--tz <IANA>` | Timezone used for every boundary above (global flag, e.g. `Europe/Warsaw`) |
+| Windows | `%APPDATA%\com.oxyflow.timelog\oxytime.db` |
+| macOS | `$HOME/Library/Application Support/com.oxyflow.timelog/oxytime.db` |
+| Linux | `$XDG_DATA_HOME/com.oxyflow.timelog/oxytime.db`, or `$HOME/.local/share/com.oxyflow.timelog/oxytime.db` |
 
-- **Exclusivity:** the six presets are mutually exclusive with each other and with `--from`/`--to`. Any combination is a syntax error (`CLI_SYNTAX_INVALID_ARGS`, exit `2`; in machine mode a JSON envelope on stderr).
-- **Half-open range:** every resolved range is `[from, to)` in UTC. `to` is **exclusive**: a log starting exactly at `to` is not included. A date-only `--to 2026-10-31` means up to the start of `2026-11-01` in the chosen timezone, so the whole day is covered.
-- **Default period:** with no preset and no bounds, `log list` and `report` cover all time.
-- **Timezone resolution:** `--tz` wins over the application's timezone setting; `System` or an unset value uses the OS zone, falling back to UTC when it cannot be detected. An unknown zone name (`--tz Mars/Olympus`) or an inverted range (`--from` later than `--to`) is a syntax error (exit `2`).
-- **Single source of truth:** all boundaries come from `Engine::resolve_range`; the in-app sandbox emulator uses the browser mirror (`resolveRangeAt`) and behaves identically. `oxy log list --week` therefore no longer means "the last 7 days".
+The default CSV sink directory is `csv/` next to the database file.
 
-### Quiet Output for Scripts (Implemented)
+```bash
+# Work on a scratch database without touching the real one
+export OXY_DB_PATH="$HOME/tmp/oxy-scratch.db"
+oxy project add "Scratch"
+```
 
-`-q` / `--quiet` is a global flag with one contract in the native `oxy` binary and the browser sandbox emulator. It shapes successful output only; `--machine` / `--json` take precedence when both are given.
+### 2.2. Global flags
 
-- **Mutations** (`project add|rename|archive`, `task add|done|rename|rate|reparent|move|archive`, `log add|edit|remove`) print the affected entity's full ID followed by a newline and nothing else.
-- **Lists** (`project ls`, `task ls`, `log ls`) print one row per entity, with no header, footer, or status prefix. An empty list prints no rows.
-- **Errors are never suppressed.** They still go to `stderr` with the same exit codes as the verbose run.
+| Flag | Short | Value | Effect |
+| --- | --- | --- | --- |
+| `--machine` | `-m` | — | Machine mode: success output is a compact JSON envelope on stdout, errors are a JSON envelope on stderr, no prompts, strict target resolution |
+| `--json` | `-j` | — | Same as `--machine`, except that output is pretty-printed when stdout is a terminal |
+| `--quiet` | `-q` | — | Minimal success output for scripts ([section 3.2](#32-quiet-mode--q)) |
+| `--exact` | — | — | Strict target resolution in human mode ([section 5](#5-target-resolution)) |
+| `--db` | — | path | Database file ([section 2.1](#21-database-selection)) |
+| `--tz` | — | IANA name | Timezone for periods in `log list`, `report`, `today` and the dashboard ([section 6](#6-periods--timezones)) |
+| `--help` | `-h` | — | Help on stdout, exit 0 |
+| `--version` | `-V` | — | `oxy <version>` on stdout, exit 0 |
+
+---
+
+## 3. Output Modes & Streams
+
+### 3.1. Modes
+
+| Mode | stdout | stderr |
+| --- | --- | --- |
+| Human (default) | Text. Success messages start with `✅`, flow messages with `▶️` / `⏹️` / `⚡` | `Error [CODE]: <message>`, followed by `Suggestion:` and `Remediation:` lines when available |
+| `--json` | One success envelope; indented when stdout is a terminal and `--machine` is absent, one line otherwise | One-line JSON error envelope, without the `user` layer |
+| `--machine` | One success envelope on one line | One-line JSON error envelope, without the `user` layer |
+
+Rules that hold in every mode:
+
+- Success output goes to stdout only; errors go to stderr only.
+- Diagnostics use `env_logger` on stderr. The default filter is `error`; `RUST_LOG` overrides it.
+- Interactive prompts ([section 5.3](#53-interactive-prompts)) are written to stdout and appear only when stdin is a terminal, machine mode is off and `--exact` is absent.
+- In machine mode, clap parse errors become JSON envelopes (`CLI_SYNTAX_UNKNOWN_COMMAND`, `CLI_SYNTAX_INVALID_ARGS`, exit 2). A command group without a subcommand (`oxy --machine task`) still prints clap's plain help to stderr with exit 2.
+- The CLI writes no ANSI color codes. `NO_COLOR` is not read.
+
+### 3.2. Quiet mode (`-q`)
+
+`-q` changes successful output only. Errors are never suppressed. `--json` / `--machine` win when combined with `-q`.
+
+| Command | Output with `-q` |
+| --- | --- |
+| `project add`, `rename`, `archive`; `task add`, `done`, `rename`, `rate`, `reparent`, `move`, `archive`; `log add`, `edit`, `remove` | The affected entity's full ID and a newline |
+| `project list`, `task list`, `log list` | The rows without header, footer or `✅` prefix; nothing for an empty list |
+| `start`, `switch` | The ID of the time log that was opened; `start` on a task that is already running prints nothing (exit 0) |
+| `report` (table, no `-o`) | One line: `Total Time: <duration> (<n> active tasks)`, also for an empty period |
+| `report -o <path>` | The written path |
+| `report -o -`, `report -f <text format>` without `-o` | Unchanged: the export is the output |
+| `stop`, `status`, `today`, bare `oxy`, `config`, `sink`, `mask`, `doctor`, `db`, `report schema` | `-q` is accepted and ignored |
 
 ```bash
 TASK_ID=$(oxy task add "Code review" -p "Core" -q)
-oxy project ls -q | grep -c "Core"
+LOG_ID=$(oxy start "$TASK_ID" -q)
 ```
 
-- **Flow commands** (`start`, `switch`) print the ID of the time log they open. Starting a task that is already running opens no log, so `start -q` prints nothing in that case (exit code 0).
+---
 
-- **Report** (`report`): `-q` prints only the totals line of the table, `Total Time: <duration> (<n> active tasks)`, for example `Total Time: 02h 00m (3 active tasks)`. The line is printed even when the period holds no data (`Total Time: 00m 00s (0 active tasks)`), so a script always gets one parsable line. With `-o <path>` it prints only the path of the written file. `-o -` and exports to `stdout` without `-o` are unaffected, because the export is the output; `--machine` / `--json` take precedence, as for every command.
+## 4. Envelopes
 
-### Machine Output Envelope (Implemented for flow, dashboard, entity, subsystem and report commands)
+### 4.1. Success envelope
 
-Every successful `--json` / `--machine` response of a migrated command is one versioned envelope on `stdout`. The contract is identical in the native `oxy` binary and the browser sandbox emulator, and the TypeScript shape is generated into `src/bindings/SuccessEnvelope.ts`.
+Every successful `--json` / `--machine` response, except the cases in [section 4.3](#43-output-that-is-not-enveloped), is one envelope on stdout. The TypeScript type is generated into `src/bindings/SuccessEnvelope.ts`; the JSON Schema is printed by `oxy report schema --target envelope`.
 
 ```json
 {
-  "schema": "oxy.status",
+  "schema": "oxy.stop",
   "schemaVersion": 1,
-  "data": {
-    "active": [
-      {
-        "taskId": "task-42",
-        "taskName": "Code review",
-        "projectId": "proj-7",
-        "projectName": "Core",
-        "start": "2026-11-12T09:30:00Z",
-        "elapsedSeconds": 3615
-      }
-    ],
-    "count": 1,
-    "running": true
-  },
+  "data": { "action": "noop", "stoppedCount": 0 },
   "meta": {
-    "generatedAt": "2026-11-12T10:30:15Z",
+    "generatedAt": "2026-11-14T21:53:13Z",
     "generator": { "name": "oxy", "version": "1.14.5" }
   }
 }
 ```
 
-- `schema` is `oxy.<command>` (flow commands, `today` and `doctor`) or `oxy.<domain>.<action>` (entity and subsystem commands); `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
-- `meta.generatedAt` is whole-second RFC 3339 UTC; `meta.generator` is the same `{ name, version }` pair that `oxy.report` carries.
-- All JSON keys are camelCase at every depth. Enum values (`action`) are camelCase too.
-- **Formatting:** `--machine` always prints one compact line. `--json` prints indented JSON only when `stdout` is a terminal and `--machine` is absent; piped or redirected `--json` output is one compact line. The sandbox has no terminal and always prints the compact line.
-- Errors are not part of this envelope; they keep the existing `stderr` error envelope and exit codes.
-- Commands that are not listed in the table below still print their previous raw JSON and migrate in later changes (`oxy report schema -o <path> --machine`).
+- Envelope and `data` keys are camelCase; enum values such as `action` are camelCase too.
+- `meta.generatedAt` is whole-second RFC 3339 UTC.
+- `schemaVersion` changes on any breaking change to that schema's `data`. There is no compatibility mode; consumers pin on `schema` + `schemaVersion`.
+- A successful exit code and the envelope itself signal success. There is no `status` field.
 
-| Command | `schema` | `schemaVersion` | `data` |
+### 4.2. Schemas
+
+All schemas are version 1 except `oxy.report` (version 2).
+
+| Command | `schema` | `data` |
+| --- | --- | --- |
+| bare `oxy` | `oxy.dashboard` | `{ running, activeSession: { taskId, taskName, projectId, projectName, start, elapsedSeconds } \| null, todayDate, todayTotalSeconds, sessionCount, recentTasks: { taskId, taskName, projectName, durationSeconds }[] }` |
+| `start <target>` | `oxy.start` | `{ action: "started" \| "alreadyRunning", taskId, timeLogId \| null, stoppedTaskIds[] }` |
+| `start` (no target, timer running) | `oxy.status` | The `oxy.status` payload |
+| `stop` | `oxy.stop` | `{ action: "stopped" \| "noop", stoppedCount }` |
+| `switch <target>` | `oxy.switch` | `{ action: "switched", taskId, timeLogId }` |
+| `status` | `oxy.status` | `{ active: { taskId, taskName, projectId, projectName, start, elapsedSeconds }[], count, running }` |
+| `today` | `oxy.today` | An `oxy.report` v2 `ReportDocument` (full variant, patches excluded) for the current local day; it carries its own `schema: "oxy.report"` |
+| `report` (no `-o`) | `oxy.report` (v2) | The `ReportDocument`; `summary` has no `entries` |
+| `report -o <path>` | `oxy.report.export` | `{ path, format, variant, totalSeconds }` |
+| `project list` | `oxy.project.list` | `{ items: Project[] }` |
+| `project add` / `rename` | `oxy.project.add` / `oxy.project.rename` | `Project` |
+| `project archive` | `oxy.project.archive` | `{ id, action: "archived" }` |
+| `task list` | `oxy.task.list` | `{ items: Task[] }` |
+| `task add` / `done` / `rename` / `rate` / `reparent` / `move` | `oxy.task.add` / `.done` / `.rename` / `.rate` / `.reparent` / `.move` | `Task` |
+| `task archive` | `oxy.task.archive` | `{ id, action: "archived" }` |
+| `log list` | `oxy.log.list` | `{ items: TimeLog[], totalMatched }` |
+| `log add` / `edit` | `oxy.log.add` / `oxy.log.edit` | `TimeLog` |
+| `log remove` | `oxy.log.remove` | `{ id, action: "removed", entry: TimeLog }` |
+| `config list` | `oxy.config.list` | `{ items: { key, value }[] }` |
+| `config get` / `set` | `oxy.config.get` / `oxy.config.set` | `{ key, value }` |
+| `sink list` | `oxy.sink.list` | `{ items: { name, sinkType, target, hasToken, enabled, createdAt }[] }` |
+| `sink set-csv` / `set-webhook` | `oxy.sink.set` | `{ sinkType: "csv" \| "webhook", target }` |
+| `sink test` | `oxy.sink.test` | `{ items: { name, sinkType, target, passed, detail }[] }` (only when every sink passes) |
+| `mask list` | `oxy.mask.list` | `{ items: { name, template, createdAt }[] }` |
+| `mask set` / `remove` | `oxy.mask.set` / `oxy.mask.remove` | `{ name, template }` / `{ name }` |
+| `doctor` | `oxy.doctor` | `{ overallStatus: "ok", dbPath, dbSizeBytes, checks: { name, status, message }[] }` (only when every check passes) |
+| `db backup` / `restore` | `oxy.db.backup` / `oxy.db.restore` | `{ destination }` / `{ source }` |
+
+`Project`, `Task`, `TimeLog` and `ReportDocument` are the generated types in `src/bindings/`.
+
+### 4.3. Output that is not enveloped
+
+| Command | stdout in machine mode |
+| --- | --- |
+| `report -o -` | The raw export bytes |
+| `report schema` (no `-o`) | The schema document itself |
+| `report schema -o <path>` | `{ "status": "success", "exported_path", "schema", "schema_version" }` (snake_case) |
+
+### 4.4. Exit codes
+
+Defined in `src-tauri/src/cli/shared/constants.rs`, mapped by `CliError::exit_code()`.
+
+| Code | Constant | Meaning |
+| --- | --- | --- |
+| `0` | `EXIT_CODE_SUCCESS` | Success, including `stop --if-running` with nothing to stop and a cancelled `log remove` |
+| `1` | `EXIT_CODE_GENERIC_FAILURE` | Business rule violation, engine operation failure, sink failure, failed `doctor` |
+| `2` | `EXIT_CODE_CLI_SYNTAX` | Invalid syntax or arguments, unknown command, invalid timezone or range, unknown mask |
+| `3` | `EXIT_CODE_STORAGE_ERROR` | SQLite or storage failure, missing `--db` file |
+| `4` | `EXIT_CODE_ENTITY_ERROR` | Entity not found, ambiguous target, did-you-mean |
+| `5` | `EXIT_CODE_ENGINE_ERROR` | No active timer, active timer conflict |
+
+### 4.5. Error codes
+
+Defined in `src-tauri/src/cli/error/codes.rs`.
+
+| Code | Category | Exit | Raised when |
 | --- | --- | --- | --- |
-| `oxy start <task>` | `oxy.start` | 1 | `{ action: "started" \| "alreadyRunning", taskId, timeLogId: string \| null, stoppedTaskIds: string[] }`; `timeLogId` is `null` when the task was already running |
-| `oxy start` (no target, timer running) | `oxy.status` | 1 | the `oxy.status` payload, because the command only reports the running timers |
-| `oxy stop` | `oxy.stop` | 1 | `{ action: "stopped" \| "noop", stoppedCount }`; `noop` only for `--if-running` on an idle timer |
-| `oxy switch <task>` | `oxy.switch` | 1 | `{ action: "switched", taskId, timeLogId }` |
-| `oxy status` | `oxy.status` | 1 | `{ active: { taskId, taskName, projectId, projectName, start, elapsedSeconds }[], count, running }`; `start` is the stored RFC 3339 start time and `elapsedSeconds` comes from the Engine. A running log whose task or project is missing fails with an entity error (exit code `4`) instead of using a placeholder name |
-| `oxy today [--tz <iana>]` | `oxy.today` | 1 | the `oxy.report` v2 `ReportDocument` (`Full` variant, patches excluded) for the `today` preset: entries are clamped to the local day, so a session that started before midnight reports only its in-day `seconds` (its `originalSeconds` and `clamped` say so) |
-| bare `oxy` | `oxy.dashboard` | 1 | `{ running, activeSession: { taskId, taskName, projectId, projectName, start, elapsedSeconds } \| null, todayDate, todayTotalSeconds, sessionCount, recentTasks: { taskId, taskName, projectName, durationSeconds }[] }`; durations are raw seconds (the human card formats them), `recentTasks` holds the three latest sessions of today and the totals come from the same document as `oxy.today` |
-| `oxy report [--variant full\|summary]` | `oxy.report` | 2 | the `ReportDocument` for the request (the `oxy.report` v2 contract, tracked by `schemaVersion`); the `Summary` variant has no `entries`. `--format` is ignored without `-o` |
-| `oxy report -o <path> [-f <fmt>]` | `oxy.report.export` | 1 | `{ path, format, variant, totalSeconds }` after the file is written; `format` and `variant` use their `--format` / `--variant` names |
-| `oxy project ls` | `oxy.project.list` | 1 | `{ items: Project[] }` |
-| `oxy project add <name>` | `oxy.project.add` | 1 | `Project` entity object |
-| `oxy project rename <target>` | `oxy.project.rename` | 1 | `Project` entity object |
-| `oxy project archive <target>` | `oxy.project.archive` | 1 | `{ id: string, action: "archived" }` |
-| `oxy task ls` | `oxy.task.list` | 1 | `{ items: Task[] }` |
-| `oxy task add <name> -p <proj>` | `oxy.task.add` | 1 | `Task` entity object |
-| `oxy task done <target>` | `oxy.task.done` | 1 | `Task` entity object |
-| `oxy task rename <target> <name>` | `oxy.task.rename` | 1 | `Task` entity object |
-| `oxy task rate <target> <rate>` | `oxy.task.rate` | 1 | `Task` entity object |
-| `oxy task reparent <target> <parent>` | `oxy.task.reparent` | 1 | `Task` entity object |
-| `oxy task move <target> <proj>` | `oxy.task.move` | 1 | `Task` entity object |
-| `oxy task archive <target>` | `oxy.task.archive` | 1 | `{ id: string, action: "archived" }` |
-| `oxy log ls` | `oxy.log.list` | 1 | `{ items: TimeLog[], totalMatched: number }` |
-| `oxy log add <target> [dur]` | `oxy.log.add` | 1 | `TimeLog` entity object |
-| `oxy log edit <id> --reason <r>` | `oxy.log.edit` | 1 | `TimeLog` entity object |
-| `oxy log rm <id>` | `oxy.log.remove` | 1 | `{ id: string, action: "removed", entry: TimeLog }` |
-| `oxy config ls` | `oxy.config.list` | 1 | `{ items: { key, value }[] }`; lists only keys persisted in SQLite, so an unset `cli_machine_locale` is absent |
-| `oxy config get <key>` | `oxy.config.get` | 1 | `{ key, value }`; `cli_machine_locale` returns its effective default `en` when unset |
-| `oxy config set <key> <value>` | `oxy.config.set` | 1 | `{ key, value }` with the normalized value |
-| `oxy sink ls` | `oxy.sink.list` | 1 | `{ items: { name, sinkType, target, hasToken, enabled, createdAt }[] }`; the webhook token itself is never printed, only whether one is stored (`hasToken`) |
-| `oxy sink set-csv` / `oxy sink set-webhook` | `oxy.sink.set` | 1 | `{ sinkType: "csv" \| "webhook", target }` |
-| `oxy sink test` | `oxy.sink.test` | 1 | `{ items: { name, sinkType, target, passed, detail }[] }`; a failing sink makes the command fail instead |
-| `oxy mask ls` | `oxy.mask.list` | 1 | `{ items: { name, template, createdAt }[] }` |
-| `oxy mask set <name> <template>` | `oxy.mask.set` | 1 | `{ name, template }` |
-| `oxy mask rm <name>` | `oxy.mask.remove` | 1 | `{ name }` |
-| `oxy doctor` | `oxy.doctor` | 1 | `{ overallStatus: "ok", dbPath, dbSizeBytes, checks: { name, status, message }[] }`; emitted only when every check passes, otherwise the command fails as before |
-| `oxy db backup <path>` | `oxy.db.backup` | 1 | `{ destination }` |
-| `oxy db restore <path>` | `oxy.db.restore` | 1 | `{ source }` |
+| `CLI_SYNTAX_INVALID_ARGS` | `syntax` | 2 | Invalid flag value or combination, invalid timestamp, timezone or range, missing `--reason` |
+| `CLI_SYNTAX_MISSING_TARGET` | `syntax` | 2 | `start` without a target, no timer running and no terminal to prompt |
+| `CLI_SYNTAX_INVALID_DURATION` | `syntax` | 2 | Duration cannot be parsed |
+| `CLI_SYNTAX_EMPTY_ID` | `syntax` | 2 | Empty target ID |
+| `CLI_SYNTAX_UNKNOWN_COMMAND` | `syntax` | 2 | Unknown command or subcommand |
+| `DOM_ENTITY_NOT_FOUND` | `entity` | 4 | Target does not exist |
+| `DOM_ENTITY_AMBIGUOUS` | `entity` | 4 | Target matches more than one entity |
+| `DOM_ENTITY_DID_YOU_MEAN` | `entity` | 4 | No match, one close name found |
+| `STO_SQLITE_INIT` | `storage` | 3 | Database cannot be opened, `--db` file missing |
+| `STO_SQLITE_QUERY` | `storage` | 3 | Query or other storage failure |
+| `STO_SQLITE_CONSTRAINT` | `storage` | 3 | Constraint violation |
+| `ENG_TIMER_ACTIVE` | `engine` | 5 | Reserved; no code path raises it |
+| `ENG_TIMER_INACTIVE` | `engine` | 5 | `stop` with no timer running |
+| `ENG_TIMER_CONFLICT` | `engine` | 5 | Active timer conflict |
+| `ENG_OPERATION_FAILED` | `engine` | 1 | Engine operation failed |
+| `DOM_BUSINESS_VIOLATION` | `business` | 1 | Business rule violated (completed task, invalid log range, several timers without `--all`, failed `doctor`) |
+| `DOM_BUSINESS_NO_PROJECTS` | `business` | 1 | `task add` without `-p` and no active project exists |
+| `SNK_EXTERNAL_IO` | `sink` | 1 | Sink I/O failure or failed `sink test` |
+| `SNK_SERIALIZATION` | `sink` | 1 | Report export could not be formatted or written |
+| `MSK_ALIAS_NOT_FOUND` | `mask` | 2 | `mask remove` on an unknown mask |
+| `MSK_ALIAS_SYNTAX` | `mask` | 2 | Invalid mask definition |
 
-The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. `oxy report schema -o <path> --machine` still prints its previous summary object.
+### 4.6. Error envelope
 
-### Billing Configuration (Implemented)
+`CliErrorEnvelope` (`src-tauri/src/types/cli.rs`). Top-level keys are **snake_case**; members of `details` are camelCase. Empty optional members are omitted.
 
-Billing rates are configured on Projects and optionally overridden on Tasks. The native CLI accepts a rate in major currency units (for example, `150.00`) or as integer minor units (for example, `15000` cents). A Project currency is supplied as a three-letter code such as `PLN`, `EUR`, or `USD`.
-
-**Create or update a Project rate**
-
-```bash
-# Create a project with a rate of 150.00 PLN per hour
-oxy project add "Client Work" --rate "150.00" --currency PLN
-
-# Update an existing project's rate and currency
-oxy project rename "Client Work" --rate "175.50" --currency EUR
-
-# Clear the project's rate or currency
-oxy project rename "Client Work" --rate none --currency none
+```json
+{
+  "code": "CLI_SYNTAX_INVALID_ARGS",
+  "category": "syntax",
+  "exit_code": 2,
+  "timestamp": "2026-11-14T21:53:35.407369+00:00",
+  "technical": "invalid value 'yaml' for '--format <FORMAT>'",
+  "details": { "field": "--format", "value": "yaml" }
+}
 ```
 
-**Set a Task override or inherit the Project rate**
+| Key | Content |
+| --- | --- |
+| `code`, `category`, `exit_code` | As in [section 4.5](#45-error-codes) |
+| `timestamp` | RFC 3339 with fractional seconds |
+| `technical` | English message |
+| `details.candidates` | `{ id, name }[]` for `DOM_ENTITY_AMBIGUOUS` |
+| `details.suggestion` | `{ id, name }` for `DOM_ENTITY_DID_YOU_MEAN` |
+| `details.field`, `details.value` | Offending flag (without clap's placeholder) and value for invalid arguments |
+| `user` | `{ locale, message, suggestion?, remediation? }`, present only outside machine mode, where the native binary renders the error as text instead. `message` repeats `technical` in English |
+
+---
+
+## 5. Target Resolution
+
+Commands that take a project or task (`start`, `switch`, `-p`, `-t`, `-P`, `task …`, `project …`, `log add`, `log edit --task`) resolve the target as follows.
+
+### 5.1. Strict mode (`--json`, `--machine` or `--exact`)
+
+1. Exact ID (a leading `#` is ignored).
+2. Unique ID prefix of **8 or more** characters.
+3. Exact name, case-insensitive.
+
+Anything else is `DOM_ENTITY_NOT_FOUND`. Several matches at step 2 or 3 are `DOM_ENTITY_AMBIGUOUS` with `details.candidates`. No prompts, no fuzzy matching, no suggestions.
+
+### 5.2. Human mode (default)
+
+1. Exact ID.
+2. Unique ID prefix or suffix of any length (a leading `#` is ignored).
+3. Case-insensitive substring of the name or the ID. One match is used; several are ambiguous. An exact name that is also contained in another name (`Core` and `Core API`) is ambiguous here; use `--exact` or the ID.
+4. Typo suggestion: the closest name within Levenshtein distance 2 is returned as `DOM_ENTITY_DID_YOU_MEAN`, with its ID in the remediation line.
+5. Otherwise `DOM_ENTITY_NOT_FOUND`.
+
+Time logs (`log edit <id>`, `log remove <id>`) are always looked up by exact ID.
+
+### 5.3. Interactive prompts
+
+Prompts appear only when stdin is a terminal, machine mode is off and `--exact` is absent. `--exact` therefore also skips the `log remove` confirmation ([LOG-06](../reviews/cli-review-2026-11/findings-time-logs.md#log-06-p1---exact-disables-the-log-rm-confirmation-and-the-start-prompt)):
+
+| Situation | Prompt |
+| --- | --- |
+| Ambiguous target in human mode | Numbered list of candidates; `q` or empty input cancels and the ambiguity error is returned |
+| `start` without a target and no timer running | `Enter task name or ID to start tracking (or 'q' to cancel):` |
+| `log remove <id>` without `--yes` | `Remove entry <short id> (<duration>, <task name>)? [y/N]` |
+
+---
+
+## 6. Periods & Timezones
+
+`log list` and `report` accept the period flags. `today` and the bare dashboard always cover the current local day and accept only `--tz`.
+
+| Flag | Range |
+| --- | --- |
+| `--today`, `--yesterday` | Local calendar day |
+| `--week`, `--last-week` | Local calendar week, Monday through Sunday |
+| `--month`, `--last-month` | Local calendar month |
+| `--from <v>`, `--to <v>` | Custom bounds: `YYYY-MM-DD`, `YYYY-MM-DDTHH:MM:SS`, `YYYY-MM-DD HH:MM:SS` or RFC 3339 |
+| none | All time |
+
+- Ranges are half-open, `[from, to)`. A date-only `--to 2026-10-31` ends at the start of 2026-11-01, so the whole day is included.
+- Naive values (no offset) are local times in the resolved timezone.
+- The six presets exclude each other and `--from` / `--to`. Combining them is a clap error (exit 2).
+- A `--from` that is not earlier than `--to` (an empty range) and an unknown zone (`--tz Mars/Olympus`) are `CLI_SYNTAX_INVALID_ARGS` (exit 2).
+- Timezone precedence: `--tz`, then the app's `timezone` setting (config key `timezone`, see [section 9](#9-configuration--environment)), then the OS zone, then UTC. `System` or an unset setting means the OS zone.
+- All boundaries come from `Engine::resolve_range`; the sandbox uses the browser mirror `resolveRangeAt`.
+
+`log add --from/--to` and `log edit --start/--end` parse timestamps differently: naive values there are read as **UTC**, and `YYYY-MM-DD` means midnight UTC. `--tz` does not apply to them ([LOG-04](../reviews/cli-review-2026-11/findings-time-logs.md#log-04-p1-naive-timestamps-are-read-as-utc-and---tz-does-not-apply-to-log-add--log-edit), known issue).
+
+---
+
+## 7. Command Reference
+
+Aliases are listed in parentheses. Every command also accepts the global flags.
+
+### 7.1. Flow commands
+
+| Command | Usage | Notes |
+| --- | --- | --- |
+| *(none)* | `oxy` | Dashboard: running session, today's total, session count, the three latest sessions of today |
+| `start` (`s`) | `oxy start [TARGET]` | Starts a timer. Starting a task that already runs is a no-op (`alreadyRunning`). Timers stopped as a side effect are listed in `stoppedTaskIds`. Without a target: prints the running timers if any, otherwise prompts (terminal) or fails with `CLI_SYNTAX_MISSING_TARGET` |
+| `stop` (`sp`) | `oxy stop [--all] [--if-running]` | Stops the running timer. No timer: `ENG_TIMER_INACTIVE` (exit 5), or a `noop` success with `--if-running`. More than one timer: `--all` is required, otherwise `DOM_BUSINESS_VIOLATION` (exit 1) |
+| `switch` (`sw`) | `oxy switch <TARGET>` | Stops the running timer and starts the target in one operation |
+| `status` (`st`) | `oxy status` | Running timers with elapsed time from the Engine |
+| `today` (`summary`) | `oxy today` | Today's entries and total (patches excluded) |
 
 ```bash
-# Create a task with a custom hourly rate
-oxy task add "Implementation" --project "Client Work" --rate "200.00"
+oxy start "Code review"
+oxy sw 3f9a2c1b --json
+oxy stop --if-running -m      # safe in a logout hook
+```
 
-# Set a custom rate and currency override on an existing task
-oxy task rate "Implementation" "220.00" --currency PLN
+### 7.2. `project` (`p`, `proj`)
 
-# Set an explicit zero rate (non-billable)
-oxy task rate "Implementation" "0.00"
+| Subcommand | Usage |
+| --- | --- |
+| `list` (`ls`) | `oxy project list [-a]` |
+| `add` (`create`) | `oxy project add <NAME> [-c <COLOR>] [--rate <AMOUNT> \| --rate-cents <CENTS>] [--currency <CODE>]` |
+| `rename` (`ren`, `update`) | `oxy project rename <TARGET> [NEW_NAME] [-c <COLOR>] [--rate <AMOUNT> \| --rate-cents <CENTS>] [--currency <CODE>]` |
+| `archive` (`rm`) | `oxy project archive <TARGET>` |
 
-# Remove the Task override and inherit the Project rate again
+| Flag | Short | Value | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `--all` | `-a` | — | off | `list`: include archived projects |
+| `--color` | `-c` | hex or color name | `#FFFFFF` on `add` | e.g. `#3b82f6`, `indigo` |
+| `--rate` | — | major units | none | `150.00` or `150`; `none` clears on `rename` |
+| `--rate-cents` | — | integer | none | Excludes `--rate` |
+| `--currency` | — | three-letter code | none | `none` clears on `rename` |
+
+`rename` needs at least one of `NEW_NAME`, `--color`, `--rate`, `--rate-cents`, `--currency`. `archive` sets `archived = true`; it does not delete.
+
+### 7.3. `task` (`t`)
+
+| Subcommand | Usage |
+| --- | --- |
+| `list` (`ls`) | `oxy task list [-p <PROJECT>] [-a]` |
+| `add` (`create`) | `oxy task add <NAME> [-p <PROJECT>] [-P <PARENT>] [--rate <AMOUNT> \| --rate-cents <CENTS>]` |
+| `done` (`complete`) | `oxy task done <TARGET>` |
+| `rename` (`ren`) | `oxy task rename <TARGET> <NEW_NAME>` |
+| `rate` | `oxy task rate <TARGET> <RATE> [--currency <CODE>] [--cents]` |
+| `reparent` | `oxy task reparent <TARGET> <NEW_PARENT>` |
+| `move` | `oxy task move <TARGET> <NEW_PROJECT>` |
+| `archive` (`rm`) | `oxy task archive <TARGET>` |
+
+| Flag | Short | Value | Notes |
+| --- | --- | --- | --- |
+| `--project` | `-p` | target | `list`: filter. `add`: owning project; defaults to the parent's project with `-P`, else to the first non-archived project (`DOM_BUSINESS_NO_PROJECTS` when none). A parent from another project is `DOM_BUSINESS_VIOLATION` |
+| `--all` | `-a` | — | `list`: include completed and archived tasks |
+| `--parent` | `-P` | target | `add`: create a subtask |
+| `--rate`, `--rate-cents` | — | amount / integer | `add`: task override; mutually exclusive |
+| `--currency` | — | code | `rate`: currency override |
+| `--cents` | — | — | `rate`: read `RATE` as integer cents |
+
+- `done` sets `completed = true`; it does not toggle.
+- `RATE` accepts major units (`220.00`), a `c` suffix for cents (`15000c`), or `inherit` / `none` / `clear` to remove the override. `0.00` is an explicit non-billable override.
+- `reparent` accepts `none` or `root` as `NEW_PARENT` to make the task a root task.
+- `move` moves the task with its subtasks.
+- `archive` takes no project flag.
+
+```bash
+oxy task add "Implementation" -p "Client Work" --rate 200.00
+oxy task add "Tests" -P "Implementation" -q
 oxy task rate "Implementation" inherit
 ```
 
-For integer minor-unit input, use `--rate-cents 15000` on Project/Task creation or Project update, or use `--cents` with `oxy task rate <target> 15000 --cents`. Do not pass both `--rate` and `--rate-cents` in one command. Task rate values `inherit`, `none`, and `clear` remove the Task override; an explicit `0.00` remains a non-billable override.
+### 7.4. `log` (`l`)
 
-**Current CLI scope:** Project/Task billing configuration and machine-readable mutation responses are implemented. Billing-aware CLI report output is not implemented yet; `oxy report` continues to use the existing elapsed-time report path. Billing summaries are currently available in the application's Reports view.
+| Subcommand | Usage |
+| --- | --- |
+| `list` (`ls`) | `oxy log list [-t <TASK>] [-p <PROJECT>] [PERIOD] [-l <N>]` |
+| `add` (`create`) | `oxy log add <TARGET> [DURATION] [NOTE] [--from <TS>] [--to <TS>] [--note <TEXT>]` |
+| `edit` (`update`) | `oxy log edit <ID> [-d <DURATION>] [-n <NOTE>] [--start <TS>] [--end <TS>] [--task <TARGET>] -r <REASON>` |
+| `remove` (`rm`, `delete`) | `oxy log remove <ID> [-y]` |
 
-**Rate input contract:** Rates have two decimal places and are represented internally as integer cents. The accepted maximum is 9,007,199,254,740,991 cents (the JavaScript safe-integer boundary), and larger values are rejected consistently by Rust and TypeScript. The report calculator rounds each task's calculated amount to the currency's two-decimal minor-unit representation using round-half-to-even (banker's rounding).
+| Flag | Short | Subcommand | Notes |
+| --- | --- | --- | --- |
+| `--task`, `--project` | `-t`, `-p` | `list` | Filters |
+| `--limit` | `-l` | `list` | 1 or more. Default 20 in human mode (with a footer), unlimited in machine mode |
+| `--from`, `--to` | — | `add` | Explicit start / end ([timestamp rules](#6-periods--timezones)) |
+| `--note` | — | `add` | Wins over the positional `NOTE` |
+| `--duration` | `-d` | `edit` | New duration |
+| `--note` | `-n` | `edit` | New note |
+| `--start`, `--end` | — | `edit` | New bounds |
+| `--task` | — | `edit` | Reassign to another task |
+| `--reason` | `-r` | `edit` | Required at runtime (`CLI_SYNTAX_INVALID_ARGS` without it), together with at least one change |
+| `--yes` | `-y` | `remove` | Delete without prompting |
 
----
+Durations: `45m`, `1h30m`, `2h`, `90s`, or a bare number of minutes (`90`).
 
-### Report Export Subsystem (Implemented)
+`log add` combines its inputs like this:
 
-**Report figures:** `oxy report` (table, `--json` and every export) computes its numbers with the engine's canonical report builder (`Engine::build_report`, see [`ENGINEERING.md`](./ENGINEERING.md#canonical-report-model-reportdocument)). `oxy report --json` / `--machine` prints the `ReportDocument` (`oxy.report` v2) in the standard envelope; the document order produced by the Engine is canonical (projects, tasks, entries and days are never re-sorted and no exporter iterates a hash map), so two exports of the same data are byte-identical apart from `generatedAt` in the JSON document. The table view and the formats that have not been ported yet (`html`, `ods`) still go through a temporary adapter to the legacy tree shape, where `entries` are ordered by start time and then ID, each entry's `date` is the local calendar date of the in-range part of the entry, and `start_time` / `end_time` are whole-second RFC 3339 instants.
+| Given | Start | End |
+| --- | --- | --- |
+| `DURATION` | now − duration | now |
+| `--from` + `DURATION` | `--from` | `--from` + duration |
+| `--from` only | `--from` | now |
+| `--from` + `--to` | `--from` | `--to` |
+| `--to` + `DURATION` | `--to` − duration | `--to` |
 
-**Command syntax:** `oxy report [--format <fmt>] [--variant full|summary] [-o <path>|-] [--csv-delimiter <char>] [--bom] [period flags] [-p <project>] [-t <task>]`. The former `report export` and `report tree` subcommands and the `--tree` flag no longer exist (there are no aliases); `report schema` is unchanged.
+With `--from`, a second positional value that is not a valid duration is taken as the note.
 
-- `--format` / `-f` (default `table`) selects the format from the registry below.
-- `--variant` (default `full`): `full` carries the per-entry rows, `summary` only the totals and aggregates. A format that does not support the requested variant fails with a syntax error (exit code `2`) naming the format and the variant; every registered format currently supports both variants.
-- `-o <path>` writes the export atomically to a file (parent directories are created); `-o -` writes it to `stdout`. Without `-o`, `table` prints the human tree (prefixed with the status marker), and the other text formats are written to `stdout` as they would be with `-o -`. A binary format (`xlsx`, `ods`) without `-o` fails with a syntax error (exit code `2`); with an explicit `-o -` it streams the raw archive.
-- `--csv-delimiter <char>` (default `,`) sets the CSV field delimiter: `,`, `;` or a tab (`tab`, `\t` or the literal tab character). Any other value is a syntax error (exit code `2`).
-- `--bom` starts the CSV with a UTF-8 byte order mark (`EF BB BF`); use it when the file is opened in Excel on Windows, which otherwise misreads non-ASCII text. Off by default.
-- `--csv-delimiter` and `--bom` apply only to `--format csv`; combined with any other format they are a syntax error (exit code `2`), checked before the Engine runs.
-- `stdout` receives exactly the export bytes (no status prefix, no added newline), so `oxy report -f csv -o - > a.csv` equals `oxy report -f csv -o a.csv`. With `-o -` the export is the only output in every mode, `--json` / `--machine` included.
-- With `--json` / `--machine` and no `-o`, the `oxy.report` envelope is printed and `--format` is ignored; with `-o <path>` the file is written and an `oxy.report.export` envelope is printed instead of the human message.
+`log remove`: in a terminal it prompts (anything but `y` / `yes` cancels, prints `Operation cancelled.` and exits 0). With `--yes`, in machine mode, with `--exact`, or when stdin is not a terminal, it deletes without asking. The machine envelope returns the removed entry, so it can be recreated with `log add`.
 
-| Format | Group | Variants | Binary | Notes |
+```bash
+oxy log add "Code review" 1h30m "pairing with Ana"
+oxy log add Review --from 2026-11-10T09:00:00Z --to 2026-11-10T10:00:00Z --note "retro"
+oxy log ls --week -p "Core" -l 50
+```
+
+### 7.5. `report` (`rep`)
+
+```text
+oxy report [-f <FORMAT>] [--variant full|summary] [-o <PATH>|-] [--csv-delimiter <CHAR>] [--bom]
+           [PERIOD] [-p <PROJECT>] [-t <TASK>]
+oxy report schema [-f json|xml] [--target report|envelope] [-o <PATH>]
+```
+
+| Flag | Short | Value | Default | Notes |
 | --- | --- | --- | --- | --- |
-| `table` | human | `full`, `summary` | no | Unicode tree with progress bars (the default view) |
-| `html` | human | `full`, `summary` | no | Self-contained, responsive HTML document with embedded CSS and semantic tables |
-| `csv` | data | `full`, `summary` | no | One flat, BI-friendly table (columns below), RFC 4180 quoting, UTF-8, formula-injection protection |
-| `json` | data | `full`, `summary` | no | The bare `ReportDocument`, pretty-printed, one trailing newline, no envelope |
-| `jsonl` | data | `full`, `summary` | no | JSON Lines: a `{"type":"header"}` line with the document's header fields (`schema`, `schemaVersion`, `variant`, `generatedAt`, `generator`, `range`, `filters`, `totals`), then one `{"type":"entry"}` line per entry in document order; compact, each line newline-terminated; `summary` has the header line only |
-| `xml` | data | `full`, `summary` | no | `oxy.report` v2 as XML (XSD v2, `oxy report schema --format xml`): attributes for identifiers, instants and numbers, element text for names and notes, escaped for XML 1.0; `days` and `entries` only in `full` |
-| `ods` | data | `full`, `summary` | yes | OpenDocument Spreadsheet 1.3 package generated natively in Rust with `spreadsheet-ods` |
-| `xlsx` | data | `full`, `summary` | yes | Office Open XML workbook generated natively in Rust with `rust_xlsxwriter`. Sheets: `Summary` (project rows, then task rows, then a totals row; time, share and one amount column per currency; native pie chart of project shares), and for `full` also `Entries` (Excel table with autofilter, one row per entry) and `Days` (one row per day, native column chart). `summary` writes `Summary` only. Durations are numeric days formatted `[h]:mm`, money uses a per-currency number format, dates are date cells |
+| `--format` | `-f` | `table`, `html`, `csv`, `json`, `jsonl`, `xml`, `ods`, `xlsx` | `table` | See [section 8](#8-reports--export-formats) |
+| `--variant` | — | `full`, `summary` | `full` | |
+| `--output` | `-o` | path or `-` | none | `-` writes to stdout |
+| `--csv-delimiter` | — | `,`, `;`, `tab` / `\t` / a literal tab | `,` | csv only |
+| `--bom` | — | — | off | csv only: UTF-8 byte order mark for Excel on Windows |
+| period flags | — | see [section 6](#6-periods--timezones) | all time | |
+| `--project` | `-p` | target | none | Filter |
+| `--task` | `-t` | target | none | Filter; must belong to `--project` when both are given |
 
-**CSV rows (`--format csv`):** exactly one header row, then one row per record in document order; project and task names repeat on every row. Decimals use a dot with two places and no thousands separators; money is the document's minor units divided by 100. Text cells starting with `=`, `+`, `-` or `@` (after leading whitespace) get a `'` prefix unless the whole cell is a number; a cell is quoted only when it contains the delimiter, a quote or a line break. Lines end with `\n`.
+`report schema` flags: `-f, --format` (`json` default, `xml`), `--target` (`report` default, `envelope`), `-o, --output <PATH>` (default stdout; `-` is a file name here, not stdout).
 
-- `summary`: one row per root task and per flattened subtask (a subtask carries `parentTaskId`), plus one task-less row per project that has project-level time. Columns: `projectId`, `projectName`, `taskId`, `taskName`, `parentTaskId`, `seconds` (the task and all descendants), `directSeconds` (the task alone, so this column sums to the document total), `hours` (`seconds` / 3600, two decimals, half up), `shareBasisPoints`, `rate`, `amount` (billed on `directSeconds`), `currency`, `billingStatus` (`inherited`, `custom`, `nonBillable` or `unconfigured`). `rate`, `amount` and `currency` are empty when the rate is unconfigured.
-- `full`: one row per entry. Columns: `entryId`, `projectId`, `projectName`, `taskId`, `taskName` (both empty for a project-level patch), `date` (local, in the report time zone), `startUtc`, `endUtc` (RFC 3339 UTC, `endUtc` empty for a running entry), `seconds`, `note`, `amount`, `currency` (empty when unconfigured).
-
-The registry (`src-tauri/src/cli/exporters/registry.rs`) holds one entry per format with its group, supported variants, binary flag, locale dependence (none yet) and writer, and a test fails when an `ExportFormat` value has no entry or more than one.
-
-**Memory Buffering and File Output Architecture:**
-- Every writer streams into a `std::io::Write`; a file export goes through a buffered temporary file in the target directory that is renamed over the target on success, so a failed export never leaves a partial file. An export to `stdout` is rendered in memory first.
-- The dedicated ZIP32 builder with MS-DOS timestamps and 32-bit boundary validation operates exclusively within the TypeScript browser plugin layer (`src/plugins/exporters/zipBuilder.ts`), rather than the Rust CLI runtime.
-
-**Schema Publication (`oxy report schema`):**
-The CLI publishes the JSON Schema (draft 2020-12) of the report document. The schema is generated from the Rust types with `schemars`, so it cannot drift from the `oxy.report` model that the engine builds and `src/bindings/ReportDocument.ts` mirrors.
-- `oxy report schema` (same as `--format json --target report`): Prints the schema of `oxy.report` `schemaVersion` 2 to `stdout`. The schema's `$id` is `urn:oxyflow:schema:oxy.report:2` and its `title` is `oxy.report`; `schema` and `schemaVersion` are pinned with `const`.
-- `oxy report schema --target envelope`: Prints the schema of the versioned machine envelope (`$id` `urn:oxyflow:schema:oxy.envelope:1`). The envelope's `data` is intentionally unconstrained; each command's `schema` / `schemaVersion` pair identifies its payload.
-- `oxy report schema -o <path>` (or `--output <path>`): Writes the schema to the file instead of `stdout`. Parent directories are created automatically. With `--machine`, `stdout` carries `{ "status": "success", "exported_path", "schema", "schema_version" }` instead of the human message.
-- `stdout` is always exactly one JSON document, with and without `--machine`. The output is deterministic (properties are sorted alphabetically), so it can be diffed and pinned.
-- Optional properties (`skip_serializing_if`) are absent from `required` and do not accept `null`; unsigned integers are `integer` with `minimum: 0`.
-- The committed copies live in `schemas/json/report/v2/report.schema.json` and `schemas/json/envelope/v1/envelope.schema.json`; an integration test fails when they differ from the generated output. After an intentional contract change run `cargo test --test integration_tests regenerate_json_schemas -- --ignored` and review the diff.
-- `oxy report schema --format xml` prints the XML Schema (XSD, version `2`, `schemas/xml/report/v2/report.xsd`) of the document written by `oxy report -f xml`, the XML projection of `oxy.report` v2. The root `<report>` carries `schema`, `schemaVersion` and `variant`; the `summary` variant has no `days` and no `entries`, which XSD 1.0 cannot enforce, so the schema marks both optional and documents the rule. With `-o`, the success message names `XML` and version `2`, and with `--machine` the summary has the same shape as for JSON (`schema` is `"XML"`, `schema_version` is `2`).
-- `--format xml --target envelope` fails with `CLI_SYNTAX_INVALID_ARGS` (exit code `2`) and writes nothing: the envelope schema is only available as JSON.
-- The former `--version <v>` flag is removed: only XSD version `2` is published, and the JSON schema version is part of its identity (`$id`).
-
-**Error Classification & Exit Codes:**
-If an export cannot be formatted, encoded, or serialized, the CLI emits a structured error envelope with semantic code `SNK_SERIALIZATION` and POSIX exit code `1` (business/sink rule violation). If file I/O fails during target file creation or writing, the CLI emits `SNK_EXTERNAL_IO` with exit code `1`.
-
----
-## 🛡️ Hierarchical Error & Failure Architecture
-
-The CLI enforces a **Dual-Layer Response Architecture**:
-
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                        CLI RESPONSE ENVELOPE                           │
-├────────────────────────────────────────────────────────────────────────┤
-│  TECHNICAL LAYER (ALWAYS ENGLISH — GUARANTEED STABLE):                 │
-│    • code: "DOM_ENTITY_NOT_FOUND"                                      │
-│    • category: "entity"                                                │
-│    • technical: "Task with ID '104' was not found in active project."  │
-│    • exit_code: 4                                                      │
-│    • timestamp: "2026-10-18T11:42:01.402Z"                             │
-├────────────────────────────────────────────────────────────────────────┤
-│  STRUCTURED DETAILS (OPTIONAL, OMITTED WHEN EMPTY):                    │
-│    • candidates: [{ id: "...", name: "..." }]                          │
-│    • suggestion: { id: "...", name: "..." }                            │
-│    • field: "--format"                                                 │
-│    • value: "yaml"                                                     │
-├────────────────────────────────────────────────────────────────────────┤
-│  USER INFORMATION LAYER (CHOSEN LANGUAGE — e.g. POLISH 'pl'):          │
-│    • locale: "pl"                                                      │
-│    • message: "Zadanie o numerze '104' nie istnieje w projekcie."      │
-│    • suggestion: "Czy chodziło Ci o zadanie #105 'OAuth2 Auth'?"       │
-│    • remediation: "Użyj 'oxy task list', aby wyświetlić listę zadań."  │
-└────────────────────────────────────────────────────────────────────────┘
+```bash
+oxy report --week                                  # terminal tree
+oxy report --last-month -f csv --bom -o march.csv
+oxy report --today -f json -o - | jq '.totals.seconds'
+oxy report --month -f xlsx -o timesheet.xlsx --json
 ```
 
-The envelope is `CliErrorEnvelope` in `src-tauri/src/cli/error/envelope.rs`; the user layer (`LocalizedUserMessage`) is optional and omitted in `--machine` mode. In machine mode parser errors are also returned as the JSON envelope (`CLI_SYNTAX_UNKNOWN_COMMAND` / `CLI_SYNTAX_INVALID_ARGS`, exit 2); help and version output are unaffected.
+### 7.6. `config`
 
-When available, structured error context is exposed via the optional `details` object (`CliErrorDetails`):
-- `details.candidates`: array of `{ id: string, name: string }` objects representing matched candidates on ambiguous entity queries (`DOM_ENTITY_AMBIGUOUS`).
-- `details.suggestion`: single `{ id: string, name: string }` object with the closest entity candidate when a typo was made (`DOM_ENTITY_DID_YOU_MEAN`).
-- `details.field`: offending CLI argument/flag name (e.g. `--format`) on parser validation errors (`CLI_SYNTAX_INVALID_ARGS`).
-- `details.value`: invalid input value passed to the argument (e.g. `yaml`).
+| Subcommand | Usage | Behavior |
+| --- | --- | --- |
+| `list` (`ls`) | `oxy config list` | Every row stored in the `config` table, including app settings |
+| `get` | `oxy config get <KEY>` | Stored value; `cli_machine_locale` returns `en` when unset; any other missing key is `DOM_ENTITY_NOT_FOUND` |
+| `set` | `oxy config set <KEY> <VALUE>` | Writes any key. Only `cli_machine_locale` is validated |
 
-All members of `details` are camelCase and omitted when absent; an empty `details` is omitted from the envelope. `field` holds only the flag (`--format`), without clap's value placeholder. The browser sandbox emits the same machine envelope, without the `user` layer, for target-resolution errors under `--json` / `--machine`.
+### 7.7. `sink`
 
-### Exit Codes
+| Subcommand | Usage | Behavior |
+| --- | --- | --- |
+| `list` (`ls`) | `oxy sink list` | Configured sinks; a webhook token is shown only as `hasToken` |
+| `set-csv` | `oxy sink set-csv -d, --dir <DIR>` | Sets the CSV audit directory, creating it if needed |
+| `set-webhook` | `oxy sink set-webhook -u, --url <URL> [-t, --token <TOKEN>]` | URL must start with `http://` or `https://`. The token is stored as plain text in `cli_sinks.config` |
+| `test` | `oxy sink test` | CSV: creates the directory and a probe file. Webhook: checks the URL scheme only; nothing is sent. A failure is `SNK_EXTERNAL_IO` (exit 1) |
 
-Defined in `src-tauri/src/cli/shared/constants.rs` and mapped by `CliError::exit_code()`:
+### 7.8. `mask` (`alias`)
 
-| Exit Code | Meaning |
-| :--- | :--- |
-| `0` | Success |
-| `1` | Business rule violation |
-| `2` | Invalid syntax or arguments |
-| `3` | Storage (SQLite) failure |
-| `4` | Entity not found, ambiguous or did-you-mean |
-| `5` | Engine / timer lifecycle conflict |
+| Subcommand | Usage | Behavior |
+| --- | --- | --- |
+| `list` (`ls`) | `oxy mask list` | Registered masks |
+| `set` | `oxy mask set <NAME> <TEMPLATE>` | Name and template must be non-empty; the template may not start with its own name |
+| `remove` (`rm`) | `oxy mask remove <NAME>` | Unknown name: `MSK_ALIAS_NOT_FOUND` (exit 2) |
 
-### Semantic Error Codes
+Expansion happens before clap parses the command line, in `oxy` and in the desktop in-app CLI. The first non-flag token is looked up as a mask name, so a mask named like a built-in command replaces it.
 
-Defined in `src-tauri/src/cli/error/codes.rs`. Codes marked *not yet emitted* exist in the enum but no code path produces them yet.
+- `$1`, `$2`, … take the positional arguments after the mask name; an argument containing spaces is quoted unless the token is already quoted in the template.
+- `$LAST` and `$LAST_TASK` take the ID of the running task, or of the task with the most recent log.
+- `-m`, `-j`, `-q` and `--db` given with the mask are carried into the expansion. `--tz` and `--exact` are not.
+- Masks may call masks, up to 5 levels; deeper expansion is `CLI_SYNTAX_INVALID_ARGS`.
 
-| Category | Semantic Code | Exit Code | Description |
-| :--- | :--- | :--- | :--- |
-| `syntax` | `CLI_SYNTAX_INVALID_ARGS` | `2` | Invalid arguments |
-| `syntax` | `CLI_SYNTAX_INVALID_DURATION` | `2` | Duration could not be parsed |
-| `syntax` | `CLI_SYNTAX_EMPTY_ID` | `2` | Empty entity ID |
-| `syntax` | `CLI_SYNTAX_MISSING_TARGET` | `2` | Required target missing |
-| `syntax` | `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Unknown command |
-| `entity` | `DOM_ENTITY_NOT_FOUND` | `4` | Target project, task or subtask not found |
-| `entity` | `DOM_ENTITY_AMBIGUOUS` | `4` | Query matches more than one entity |
-| `entity` | `DOM_ENTITY_DID_YOU_MEAN` | `4` | No exact match; close matches suggested |
-| `storage` | `STO_SQLITE_INIT` | `3` | Database initialization failed |
-| `storage` | `STO_SQLITE_QUERY` | `3` | Query failed |
-| `storage` | `STO_SQLITE_CONSTRAINT` | `3` | Constraint violation |
-| `engine` | `ENG_TIMER_CONFLICT` | `5` | Active timer conflict |
-| `engine` | `ENG_TIMER_ACTIVE` | `5` | Timer already active (*not yet emitted*) |
-| `engine` | `ENG_TIMER_INACTIVE` | `5` | No active timer running |
-| `engine` | `ENG_OPERATION_FAILED` | `1` | Engine internal operation failed |
-| `business` | `DOM_BUSINESS_VIOLATION` | `1` | Business rule violated (e.g. starting/switching timer on completed task) |
-| `business` | `DOM_BUSINESS_NO_PROJECTS` | `1` | Operation requires at least one project |
-| `sink` | `SNK_EXTERNAL_IO` | `1` | Sink I/O or verification failure |
-| `sink` | `SNK_SERIALIZATION` | `1` | Sink export serialization failure |
-| `mask` | `MSK_ALIAS_NOT_FOUND` | `2` | Action mask alias not found |
-| `mask` | `MSK_ALIAS_SYNTAX` | `2` | Invalid mask syntax |
-
-`--db` must point to an existing file. A missing file fails with `STO_SQLITE_INIT` (exit 3) before anything is created. Only `db restore` may create the target. Without `--db`, the default database is created on first run.
-
-### Interactive Self-Healing in TTY
-
-In interactive human terminal mode, encountering an unknown entity or a missing required argument does not abort the shell. Instead, the prompter:
-
-1. Calculates Levenshtein distances ($\le 2$) against known entity names/commands.
-2. Displays the nearest matches in the user's localized language.
-3. Offers an interactive selector to pick the intended entity or create it on the spot.
-
-In `--json`/`--machine` mode, or in human mode with the global `--exact` flag, `-p`/`-t` and other targets resolve only by exact ID, unique ID prefix of ≥ 8 characters, or exact name (case-insensitive); fuzzy matching, substring matching, prefixes < 8 characters, and suggestions are human-mode only (without `--exact`).
-
-### Log Removal Confirmation (`oxy log rm`)
-
-`oxy log rm <id>` asks for confirmation before deleting:
-- **Interactive TTY:** Prompts `Remove entry <short id> (<duration>, <task name>)? [y/N]`. Anything but `y` or `yes` (case-insensitive) cancels the operation, deletes nothing, prints `Operation cancelled.`, and exits with code 0.
-- **Bypass Prompting:** In non-interactive pipelines (non-TTY stdin / pipes), when the `--yes` (`-y`) flag is provided, or in machine mode (`--json` / `--machine`), removal proceeds immediately without asking.
-- **Machine Envelope:** In `--json` / `--machine` mode the command prints the `oxy.log.remove` envelope whose `data` is `{ id, action: "removed", entry }`; `entry` is the removed time log, enabling recreation via `oxy log add`.
-- **Quiet mode:** `oxy log rm <id> -q` prints only the removed ID.
-
----
-
-## 🪟 In-App Global CLI Drawer & Session Synchronization
-
-### 1. CliDrawer Architecture (``Ctrl+` `` / `Esc`)
-
-The in-app CLI is accessible everywhere across all application layouts (Compact, Medium, Full) via the global `CliDrawer` component (`src/features/cli/CliDrawer.tsx`):
-
-- **Slide-Down Presentation**: Animated top sheet (`motion.div`) with polymorphic design tokens (`bg-card/95`, `backdrop-blur-xl`, `border-border`, `text-foreground`).
-- **Global Keybinding**: Toggled instantaneously via ``Ctrl+` `` (`Backquote`), registered via `useGlobalShortcuts`.
-- **Keyboard Trapping & Dismissal**: Automatically closes on `Escape` or clicking the backdrop overlay/close button, restoring focus to the primary UI.
-- **Responsive Layout Adaptation**: When toggled in `CompactLayout`, `CliSessionProvider` automatically expands the window into `MediumLayout` so the terminal console has sufficient viewport space without clipping.
-
-### 2. CliSessionContext & State Synchronization
-
-Terminal history, execution state, and command buffers are orchestrated by `CliSessionContext` (`src/features/cli/context/CliSessionContext.ts` and `CliSessionProvider.tsx`):
-
-- **Shared Session**: Commands executed in `CliDrawer` immediately reflect in `CliInterface.tsx` and vice-versa.
-- **Command History Navigation**: Preserves arrow up/down history traversal with synchronous cursor management (`historyIndexRef` + state) to prevent race conditions during input editing.
-- **Polymorphic Execution**: Commands run through `executeCliCommand(cmd, context)`, supporting both live business operations (`DataContext`) and safe sandbox emulation.
-
-### 3. Business Mode vs Sandbox Emulator Mode
-
-The CLI supports a dedicated in-memory sandbox emulator (`src/features/cli/sandbox/`):
-
-- **Live Engine Mode**: Active by default (indicated by `[LIVE ENGINE]` emerald badge). Commands write directly to the persistent SQLite database / DataContext.
-- **Sandbox Emulator Mode**: Toggled via `sandbox on` / `sandbox off` / `sandbox reset` (indicated by `[SANDBOX EMULATOR]` amber badge).
-  - All operations (`addproject`, `addtask`, `start`, `stop`, `switch`) execute in memory inside `SandboxEmulatorStore`.
-  - Zero persistence side-effects: Production SQLite / LocalStorage data remains completely untouched.
-  - Realistic Demo Fixtures: Pre-populated with realistic tasks, subtasks, and logs from `sandboxDemoData.ts`.
-  - Realistic Metrics: Calculated via `sandboxMetricsCalculator.ts`.
-
-### 4. Atomic `switch` Command & Language Disciplines
-
-- **Atomic Task Switching**: `switch <target-task-id>` stops any currently active timer and starts the new timer in a single transaction, eliminating race conditions or manual multi-step stop/start actions.
-- **Language Disciplines**:
-  - Command outputs (`stdout` / success logs / tabular summaries) are **strictly English** to ensure deterministic parsing, copy-pasting, and scripting.
-  - Interactive help (`help`), usage tips, error diagnoses, and remediation advice adapt to the active user locale dictionary (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `ja`, `nl`, `it`).
-  - **Machine Locale Configuration (`cli_machine_locale`)**:
-    - The CLI reads its machine envelope locale from the SQLite `config` key `cli_machine_locale`.
-    - **Effective Default:** When `cli_machine_locale` is absent from SQLite, `en` is the guaranteed effective default. `oxy config get cli_machine_locale` explicitly evaluates and returns `en`.
-    - **Database Listing (`config ls` vs `config get`):** `oxy config ls` lists only keys physically written to SQLite. If `cli_machine_locale` has not been set via `oxy config set cli_machine_locale <val>`, it will not appear in `config ls`. This is intentional and does not signify an unconfigured or broken locale.
-    - **Validation & Fallback:** Validated against supported locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `ja`, `nl`, `it`). In the event of SQLite storage failure or corrupted values, the CLI logs the error via `log::error!` (directed to `stderr`) and safely falls back to `en`, preserving the primary error envelope and exit code.
-
----
-
-## 🧪 Testing Architecture & Segregation
-
-CLI tests are kept in dedicated directories (structure and naming rules: [`testing_standards.md`](../../.agents/rules/testing_standards.md)):
-
-```text
-TimeLog/
-├── src-tauri/tests/
-│   ├── unit/cli/                        # Rust CLI unit tests
-│   │   ├── parser_test.rs               # Syntax and flag parsing
-│   │   ├── duration_parser_test.rs      # Duration parsing
-│   │   ├── error_test.rs                # Error envelopes and exit codes
-│   │   ├── levenshtein_test.rs          # Typo distance
-│   │   ├── resolver_test.rs             # Entity resolution
-│   │   ├── prompter_test.rs             # Interactive prompts
-│   │   ├── tree_renderer_test.rs        # Unicode tree formatting
-│   │   ├── exporter_*_test.rs           # CSV, HTML, JSON, ODS, XLSX, XML exporter unit tests
-│   │   └── dashboard_test.rs            # Summary output
-│   └── integration/cli/                 # Rust CLI integration tests (real SQLite in temp dirs)
-│       ├── entities/                    # Entity CRUD integration tests
-│       ├── error/                       # Error envelope & exit code integration tests
-│       ├── flow/                        # Ergonomic, interactive, and subsystem flow tests
-│       ├── ipc_cli_test.rs              # Tauri IPC cli_execute bridge tests
-│       ├── parity/parity_matrix_test.rs # 39 cross-runtime parity vectors (Rust side)
-│       └── subsystems/                  # doctor_test.rs, db_test.rs, masks_test.rs, reports_export_test.rs, export_to_file_test.rs, sinks_test.rs, config_test.rs, envelope_contract_test.rs
-└── tests/
-    ├── unit/features/cli/               # In-app CLI unit tests (CliDrawer, CliInterface, context, sandbox, utils)
-    ├── integration/cli/
-    │   ├── cli-cross-runtime-parity.test.ts   # 39 cross-runtime parity vectors (TS side)
-    │   ├── cli-drawer-integration.test.tsx
-    │   └── cli-interface.test.tsx
-    └── shared/fixtures/cli-parity-cases.json  # 39 shared parity vectors across both runtimes
+```bash
+oxy mask set standup 'log add meetings 15m "Daily standup"'
+oxy mask set go 'switch $1'
+oxy go "Code review" -q
 ```
 
+### 7.9. `doctor`
+
+`oxy doctor [--fix]` checks that the database file is readable, runs `PRAGMA integrity_check`, verifies the core tables and checks sink destinations. When every check passes it prints the report (`oxy.doctor` in machine mode). Any failed check makes the command fail with `DOM_BUSINESS_VIOLATION` (exit 1); in machine mode the full report is embedded as JSON text in `technical`.
+
+`--fix` is parsed but has no effect. **[PLANNED]** in [Phase 28](MASTERMAP.md).
+
+### 7.10. `db`
+
+| Subcommand | Usage | Behavior |
+| --- | --- | --- |
+| `backup` | `oxy db backup <PATH>` | Writes a copy of the database, creating parent directories |
+| `restore` | `oxy db restore <PATH>` | Replaces the current database with the file, without confirmation. A missing source is `CLI_SYNTAX_INVALID_ARGS` (exit 2) |
+
 ---
 
-## 🔗 Related Documentation
+## 8. Reports & Export Formats
 
-- [`MASTERMAP.md`](./MASTERMAP.md) — Product roadmap and phase tracking.
-- [`ENGINEERING.md`](./ENGINEERING.md) — Architectural invariants and coding standards.
-- [`USERINTERFACE.md`](./USERINTERFACE.md) — Spatial composition and design tokens.
-- [`USEREXPERIENCE.md`](./USEREXPERIENCE.md) — UX workflows and feedback paradigms.
+All report numbers come from `Engine::build_report` and the `ReportDocument` model (`oxy.report` v2, see [`ENGINEERING.md`](./ENGINEERING.md#canonical-report-model-reportdocument)). The CLI always includes patches in reports.
+
+### 8.1. Format registry
+
+`src-tauri/src/cli/exporters/registry.rs` holds one entry per format; a test fails when an `ExportFormat` value has no entry or more than one. No format is locale-dependent yet.
+
+| Format | Group | Binary | Built from | `--variant` effect | Content |
+| --- | --- | --- | --- | --- | --- |
+| `table` | human | no | legacy adapter | none | Unicode tree with progress bars |
+| `html` | human | no | legacy adapter | none | Self-contained HTML with embedded CSS |
+| `csv` | data | no | `ReportDocument` | yes | One flat table ([section 8.3](#83-csv-columns)) |
+| `json` | data | no | `ReportDocument` | yes | The bare document, pretty-printed, one trailing newline |
+| `jsonl` | data | no | `ReportDocument` | yes | `{"type":"header",…}` line with `schema`, `schemaVersion`, `variant`, `generatedAt`, `generator`, `range`, `filters`, `totals`, then one `{"type":"entry",…}` line per entry; `summary` has the header only |
+| `xml` | data | no | `ReportDocument` | yes | XML projection valid against XSD v2; `days` and `entries` only in `full` |
+| `ods` | data | yes | legacy adapter | none | OpenDocument spreadsheet (`spreadsheet-ods`) |
+| `xlsx` | data | yes | `ReportDocument` | yes | Workbook (`rust_xlsxwriter`): `Summary` sheet with a pie chart; `full` adds `Entries` (Excel table with autofilter) and `Days` (column chart). Durations are `[h]:mm` numbers, money uses a per-currency number format |
+
+"Legacy adapter" means the format is rendered from an intermediate tree shape (`formatters/report_tree_adapter.rs`); it shows no per-entry rows in either variant. **[PLANNED]**: ODS, table and HTML on `ReportDocument` in [Phase 24](MASTERMAP.md).
+
+### 8.2. Delivery
+
+| Invocation | Result |
+| --- | --- |
+| No `-o`, `table` | Human tree on stdout |
+| No `-o`, other text format | Export bytes on stdout |
+| No `-o`, `ods` / `xlsx` | `CLI_SYNTAX_INVALID_ARGS` (exit 2): binary output needs `-o` |
+| `-o -` | Export bytes on stdout in every mode, binary formats included; no status prefix, no added newline |
+| `-o <path>` | Atomic write (temporary file in the target directory, then rename; parent directories are created). Prints a message, the path with `-q`, or `oxy.report.export` in machine mode |
+| `--json` / `--machine`, no `-o` | `oxy.report` envelope; `--format` is ignored |
+
+- `oxy report -f csv -o - > a.csv` produces the same bytes as `oxy report -f csv -o a.csv`.
+- `--csv-delimiter` and `--bom` with any format other than `csv` are `CLI_SYNTAX_INVALID_ARGS`, also in machine mode where `--format` is otherwise ignored. Format, variant and CSV flags are validated before the Engine runs.
+- A formatting or write failure is `SNK_SERIALIZATION` (exit 1).
+
+### 8.3. CSV columns
+
+One header row, then one row per record in document order. Names repeat on every row. Decimals use a dot and two places, no thousands separator; money is minor units / 100. Cells starting with `=`, `+`, `-` or `@` (after leading whitespace) get a `'` prefix unless the whole cell is a number. A cell is quoted only when it contains the delimiter, a quote or a line break. Lines end with `\n`.
+
+- **`summary`**: one row per root task and per subtask (subtasks carry `parentTaskId`), plus one task-less row per project with project-level time. Columns: `projectId`, `projectName`, `taskId`, `taskName`, `parentTaskId`, `seconds` (task and descendants), `directSeconds` (task alone; sums to the total), `hours` (`seconds` / 3600, two decimals, half up), `shareBasisPoints`, `rate`, `amount` (on `directSeconds`), `currency`, `billingStatus` (`inherited`, `custom`, `nonBillable`, `unconfigured`).
+- **`full`**: one row per entry. Columns: `entryId`, `projectId`, `projectName`, `taskId`, `taskName` (empty for a project-level patch), `date` (local), `startUtc`, `endUtc` (empty while running), `seconds`, `note`, `amount`, `currency`.
+
+### 8.4. Billing per format
+
+Rates are stored as integer cents; each amount is rounded half-to-even to two decimals. The accepted maximum rate is 9,007,199,254,740,991 cents.
+
+| Format | Billing content |
+| --- | --- |
+| `json`, `jsonl` | Everything in the document: per-task and per-subtask `rateMinor`, `currency`, `rateStatus`, `amountMinor`; per-project and per-currency totals; per-entry amounts (`full`); billable / non-billable / unconfigured seconds. `jsonl` carries totals in the header and amounts on entry lines |
+| `xml` | Rates, statuses and amounts for tasks, projects and entries; per-currency totals |
+| `csv` | `summary`: `rate`, `amount`, `currency`, `billingStatus`. `full`: `amount`, `currency` per entry |
+| `xlsx` | Amount columns per currency on `Summary`, entry amounts on `Entries`; no rate column |
+| `table`, `html`, `ods` | None |
+
+### 8.5. Determinism
+
+- Order is fixed by the Engine (projects and root tasks by seconds descending then ID, entries by start then ID, days by date). No exporter iterates a hash map.
+- `generatedAt` appears in `json`, `jsonl` and `xml`; two exports of the same data differ only there.
+- `csv` and `table` contain no timestamp of generation.
+- `xlsx` bytes differ between runs because the workbook embeds its creation time.
+
+### 8.6. Schemas
+
+| Command | Output | Committed copy |
+| --- | --- | --- |
+| `oxy report schema` | JSON Schema (draft 2020-12) of `oxy.report` v2, `$id` `urn:oxyflow:schema:oxy.report:2` | `schemas/json/report/v2/report.schema.json` |
+| `oxy report schema --target envelope` | JSON Schema of the success envelope, `$id` `urn:oxyflow:schema:oxy.envelope:1`; `data` is unconstrained | `schemas/json/envelope/v1/envelope.schema.json` |
+| `oxy report schema -f xml` | XSD version 2 of the `-f xml` export | `schemas/xml/report/v2/report.xsd` |
+
+- `-f xml --target envelope` is `CLI_SYNTAX_INVALID_ARGS` and writes nothing.
+- The JSON schemas are generated from the Rust types with `schemars`, with alphabetically sorted properties. Optional properties are not in `required` and do not accept `null`.
+- An integration test fails when the committed copies differ from the generated output. After an intentional change, run `cargo test --test integration_tests regenerate_json_schemas -- --ignored` and review the diff.
+- XSD 1.0 cannot express "no `days` / `entries` in `summary`", so both are optional in the XSD and the rule is documented there.
+
+---
+
+## 9. Configuration & Environment
+
+### 9.1. Config keys
+
+`config` reads and writes the SQLite `config` table that the desktop app also uses.
+
+| Key | Effect on the CLI |
+| --- | --- |
+| `timezone` | App timezone setting, used for periods when `--tz` is absent (IANA name or `System`) |
+| `cli_machine_locale` | Validated against `en`, `pl`, `de`, `es`, `fr`, `pt-br`, `uk`, `ja`, `nl`, `it`; `config get` returns `en` when unset, `config list` shows it only once set. No CLI output depends on it today: the machine envelope omits the `user` layer. **[PLANNED]**: a localized user layer, or removal of the key, in [Phase 33](MASTERMAP.md) |
+| any other key | Stored and returned as-is. App settings such as `auto_start` or `include_patches_in_reports` live here too; the CLI does not validate them |
+
+### 9.2. Environment variables
+
+| Variable | Effect |
+| --- | --- |
+| `OXY_DB_PATH` | Database path when `--db` is absent |
+| `OXYTIME_DB_PATH` | Fallback when `OXY_DB_PATH` is unset |
+| `APPDATA` (Windows), `HOME`, `XDG_DATA_HOME` | Base directory of the default database |
+| `RUST_LOG` | Log filter for stderr diagnostics (default `error`) |
+
+`TZ` and `NO_COLOR` are not read. The OS timezone comes from the system API.
+
+---
+
+## 10. In-App CLI
+
+The CLI drawer opens with ``Ctrl+` `` in every layout and closes with `Esc`; the CLI view (`CliInterface.tsx`) shares the same session (`CliSessionContext`): history, arrow-key navigation and sandbox state. Opening the drawer in the Compact layout switches the window to Medium.
+
+### 10.1. Modes
+
+| Mode | Active when | Commands go to |
+| --- | --- | --- |
+| Live, desktop | Default in the Tauri app | The native dispatcher through `cli_execute`. Output, errors, exit codes and mask expansion match `oxy`; the app refreshes its data after a successful command. `--db` opens another database file; unlike `oxy`, a missing file is created instead of failing with `STO_SQLITE_INIT` |
+| Sandbox | After `sandbox on`, in either runtime | `SandboxCommandRouter` on `SandboxEmulatorStore`: demo data (`sandboxDemoData.ts`), persisted in browser storage under `oxy_cli_sandbox_state`, never in the real database |
+| Live, browser | Default in the browser runtime | A legacy TypeScript command set (`src/features/cli/commands/`) acting on the browser's own data |
+
+Local shell commands: `clear` in every mode; `sandbox on | off | status | reset`. `help` and the legacy names (`addproject`, `addtask`, `addsubtask`, `projects`, `tasks`, `logs`, `complete`, `break`, `holidays`, `time`, …) work in the sandbox and browser modes; in desktop live mode everything except `clear` and `sandbox` goes to the native parser, where `help` is clap's help and the legacy names are unknown commands.
+
+### 10.2. Sandbox coverage
+
+| Area | Sandbox behavior |
+| --- | --- |
+| `start`, `stop`, `switch`, `status`, `today` | Supported; human text differs from `oxy`, envelopes match |
+| `project list/add/rename/archive` | Supported; no `--rate-cents`, no `update` alias |
+| `task list/add/done/rename/archive/rate` | Supported; `task rate` does not validate the value and ignores `--currency` / `--cents` |
+| `task reparent`, `task move`, `log edit` | Not supported |
+| `log list/add/remove` | Supported; `-l` is ignored (use `--limit`), `log add` ignores `--from` / `--to` / `--note`, `log remove` never prompts |
+| `report` | Legacy command: period words and sorting only; no formats, `-o` or envelope |
+| `sink`, `mask`, `config`, `doctor`, `db`, bare `oxy` | Not supported |
+| Global flags | Must follow the command. `--json`, `--machine`, `-q`, `--exact` work; `-j` / `-m` are not recognized; `--db` is ignored; `--tz` applies to `today` and `log list` only |
+| Top-level aliases (`s`, `sw`, …) | Not recognized |
+
+Full sandbox parity is **[PLANNED]** in [Phase 27](MASTERMAP.md). The shared fixture `tests/shared/fixtures/cli-parity-cases.json` (63 cases) is run by `tests/integration/cli/cli-cross-runtime-parity.test.ts` and `src-tauri/tests/integration/cli/parity/parity_matrix_test.rs`.
+
+---
+
+## 11. Known Issues
+
+The CLI review of November 2026 lists confirmed defects with evidence: [`docs/reviews/cli-review-2026-11/`](../reviews/cli-review-2026-11/README.md). Points that affect scripts today:
+
+- `log add` skips the overlap, future and zero-length checks that `log edit` applies, so it accepts entries that `log edit` would reject.
+- `--exact` disables the `log remove` confirmation and the `start` prompt.
+- `start` and `switch` accept archived tasks, and `task done`, `task archive` and `project archive` leave a running timer open.
+- Error envelopes use snake_case keys while success envelopes use camelCase.
+- `doctor` and `sink test` failures embed a JSON report inside the `technical` string.
+- `report schema -o -` writes a file named `-`.
+- HTML and ODS exports ignore `--variant` and still use the legacy tree shape, which handles nested subtasks differently from the other formats.
+- XLSX task amounts include subtask amounts, while CSV, JSON and XML report the task's own amount.
+- `config list` and `config get` print every stored value as-is, including secrets kept in the `config` table, such as the desktop app's `api_token`.
+
+## 12. Planned
+
+| Area | Phase |
+| --- | --- |
+| Data safety in destructive commands | [Phase 23](MASTERMAP.md) |
+| Exporter correctness across formats | [Phase 24](MASTERMAP.md) |
+| Timer, task and log flows | [Phase 25](MASTERMAP.md) |
+| Machine contract hardening | [Phase 26](MASTERMAP.md) |
+| In-app CLI and sandbox parity | [Phase 27](MASTERMAP.md) |
+| Truthful subsystem commands (`doctor --fix`, `sink test`) | [Phase 28](MASTERMAP.md) |
+| ODS on `ReportDocument`, billing view, cross-format consistency test | [Phase 24](MASTERMAP.md) |
+| Human-readable formats (Markdown, print HTML, DOCX), `--lang` | [Phase 29](MASTERMAP.md) |
+| Consistent terminal messages and help | [Phase 30](MASTERMAP.md) |
+| `contentHash`, `--output-dir`, pipeline guide | [Phase 31](MASTERMAP.md) |
+| Browser exporters on `ReportDocument` | [Phase 32](MASTERMAP.md) |
+| Localized terminal messages and error `user` layer | [Phase 33](MASTERMAP.md) |
+
+---
+
+## Related Documentation
+
+- [`ENGINEERING.md`](./ENGINEERING.md) — architecture, layers and the report model.
+- [`MASTERMAP.md`](./MASTERMAP.md) — roadmap.
+- [`USER_GUIDE.md`](./USER_GUIDE.md) — end-user guide.
+- [`testing_standards.md`](../../.agents/rules/testing_standards.md) — test tiers, CLI subprocess and parity tests.

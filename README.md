@@ -213,7 +213,7 @@ Comprehensive engineering manifests, user manuals, and technical specifications:
 | [**User Guide**](docs/manifesto/USER_GUIDE.md) | Complete end-user manual: GUI workflows, active timer controls, and shortcuts |
 | [**Product Naming & Identity**](docs/manifesto/NAMING.md) | Canonical naming rules, group vs product hierarchy, and allowed variants |
 | [**Installation Guide**](docs/manifesto/INSTALLATION.md) | OS package installation, SmartScreen trust, and SHA-256 verification |
-| [**CLI Specification**](docs/manifesto/CLI.md) | CLI architecture, personas, commands, exit codes, and error envelopes |
+| [**CLI Specification**](docs/manifesto/CLI.md) | Command contract, output modes, success and error envelopes, exit and error codes, report formats |
 | [**System Architecture**](docs/manifesto/ENGINEERING.md) | Architecture boundaries, layer decoupling, and reference engine invariants |
 | [**Product Roadmap**](docs/manifesto/MASTERMAP.md) | Phase roadmap, completed milestones, and long-term vision |
 | [**User Interface System**](docs/manifesto/USERINTERFACE.md) | Spatial layout logic, design system primitives, and CSS tokens |
