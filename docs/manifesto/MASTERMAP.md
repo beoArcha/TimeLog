@@ -146,7 +146,7 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ### Phase 10 — Decoupled Native CLI & Modular Subsystems 🔒 (Closed)
 
-> Closed with open items redistributed: Machine Locale Config → Phase 17 (Group D), Additional Export Formats → Phase 18 (Group E), CLI Crate Extraction → Phase 28 (Group A).
+> Closed with open items redistributed: Machine Locale Config → Phase 17 (Group D), Additional Export Formats → Phase 18 (Group E), CLI Crate Extraction → Phase 34 (Group A).
 
 - [x] **CLI Module Boundary**: `src-tauri/src/cli/` has zero Tauri GUI dependencies (enforced by `tauri_isolation_test.rs`) and consumes `Engine` and `Persistence` directly.
 - [x] **Dual-Layer Error Architecture**: Namespaced semantic error codes (`CLI_SYNTAX_*`, `DOM_ENTITY_*`, `STO_*`, `ENG_*`, `SNK_*`), technical English envelopes on `stderr`, localized user messages and semantic exit codes `0`..`5` (`src-tauri/src/cli/error/`), with pure deterministic single-line JSON envelopes emitted in `--machine` mode with interactive suggestion blocks omitted.
@@ -336,13 +336,13 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ---
 
-### v1.16 Program — CLI Reports, Machine Contract & Export Formats (Phases 19–27)
+### v1.16 Program — CLI Reports, Machine Contract & Export Formats (Phases 19–22, 29–33)
 
 **Goal:** One canonical, versioned report model built by the Engine in both runtimes, a stable machine contract for every `--json` / `--machine` command, and data plus human report formats that are pure projections of that model.
 
-The phases follow the logical order of the work, not strictly the delivery order: a few items were delivered ahead of their phase (marked *delivered early*) and a few were moved to a later phase where they share code with it (marked *moved*). Phase 24 can run in parallel with Phases 20–23.
+The phases follow the logical order of the work, not strictly the delivery order: a few items were delivered ahead of their phase (marked *delivered early*) and a few were moved to a later phase where they share code with it (marked *moved*). The program spans Phases 19–22 and 29–33. On 2026-11-14 the Stabilization & Flow Program (Phases 23–28) was inserted between them, because fixing defects and flow comes before new formats and features; the open items of Phases 20 and 22 moved into it.
 
-**Release gate (`1.16.0`):** Phases 19–27 complete; a pre-release audit of the report and envelope contracts; `CLI.md`, `ENGINEERING.md`, `README.md`, the user guide, the wiki and `CHANGELOG.md` updated; version bumped to `1.16.0` through `metadata.json`.
+**Release gate (`1.16.0`):** Phases 19–33 complete; a pre-release audit of the report and envelope contracts; `CLI.md`, `ENGINEERING.md`, `README.md`, the user guide, the wiki and `CHANGELOG.md` updated; version bumped to `1.16.0` through `metadata.json`.
 
 ---
 
@@ -365,7 +365,9 @@ The phases follow the logical order of the work, not strictly the delivery order
 
 ---
 
-### Phase 20 — Canonical Report Model in the Engine 🚧 (In Progress)
+### Phase 20 — Canonical Report Model in the Engine 🔒 (Closed)
+
+> Closed with open item redistributed: Billing Rounding Coverage → Phase 23 (CLIX-10).
 
 **Depends on:** Phase 19 (Group A).
 **Goal:** The Engine builds one versioned `ReportDocument`; the CLI, exporters and the browser only project it.
@@ -378,10 +380,10 @@ The phases follow the logical order of the work, not strictly the delivery order
 #### Group B — Browser Mirror & Guardrails
 - [x] **Browser Mirror & Parity**: `buildReportAt` in `src/common/engine/reports/` and `EnginePlugin.buildReport`, verified byte-for-byte against Rust-generated shared vectors.
 - [x] **Exporter Isolation Guardrails**: Architecture tests keep exporters free of storage and engine imports in Rust and TypeScript.
-- [ ] **Billing Rounding Coverage**: Boundary assertions for banker's rounding in the browser billing utilities, where mutation testing reports surviving mutants.
+- [ ] **Billing Rounding Coverage**: Boundary assertions for banker's rounding in the browser billing utilities, where mutation testing reports surviving mutants. *Moved* to Phase 23 (CLIX-10).
 
 #### Group C — Phase Gate Item
-- [x] **`oxy report --json` Emits `ReportDocument`**: `oxy report --json` prints the `oxy.report` v2 envelope. The legacy tree adapter remains only for the table view and the formats not yet ported to `ReportDocument` (Phase 22, Group B).
+- [x] **`oxy report --json` Emits `ReportDocument`**: `oxy report --json` prints the `oxy.report` v2 envelope. The legacy tree adapter remains only for the table view and the formats not yet ported to `ReportDocument` (Phase 24, CLIX-12 and CLIX-13).
 
 **Phase Gate:** `oxy report --json` returns `ReportDocument` v2, and the browser engine produces an identical document for the same fixture.
 
@@ -407,13 +409,15 @@ The phases follow the logical order of the work, not strictly the delivery order
 
 ---
 
-### Phase 22 — Data Exporters v2 🚧 (Planned)
+### Phase 22 — Data Exporters v2 🔒 (Closed)
+
+> Closed with open items redistributed: ODS, CLI Billing View and Cross-Format Consistency Test → Phase 24 (CLIX-12, CLIX-13, CLIX-15); `--lang` → Phase 29.
 
 **Depends on:** Phase 20, Phase 21 (Group A).
 **Goal:** Every data format is a pure projection of `ReportDocument`, selected through one registry.
 
 #### Group A — Registry & Flags
-- [x] **Exporter Registry & Flags**: `--format`, `--variant` (`full`, `summary`) and `-o` are in place, and the registry declares each format's group, supported variants, binary output and locale dependence; the `report export` and `report tree` subcommands are folded into `report`. `--lang` follows with the localized formats.
+- [x] **Exporter Registry & Flags**: `--format`, `--variant` (`full`, `summary`) and `-o` are in place, and the registry declares each format's group, supported variants, binary output and locale dependence; the `report export` and `report tree` subcommands are folded into `report`. `--lang` follows with the localized formats, *moved* to Phase 29.
 - [x] **Export to stdout & Ordering** (*moved* from Phase 19): `report -o -` writes to stdout, and export ordering is deterministic.
 - [x] **Quiet `report`** (*moved* from Phase 19): `-q` prints the totals line for the table and only the path for `-o <path>`.
 - [x] **`report --json` on `ReportDocument`**: Closes Phase 20 and adds `report` to the envelope contract test.
@@ -421,19 +425,263 @@ The phases follow the logical order of the work, not strictly the delivery order
 #### Group B — Formats
 - [x] **JSON & JSONL**: JSON is the serialized `ReportDocument`; JSONL starts with a header line followed by one line per entry.
 - [x] **CSV**: Flat, BI-friendly table (one header row, repeated project and task names, local date and UTC timestamps in separate columns), with `--csv-delimiter` and `--bom` options for Excel and formula-injection protection.
-- [x] **XML & XSD v2**: New XSD in `schemas/xml/report/v2/` with a `variant` attribute; `oxy report schema --format xml` returns it. XML v1 export leaves the CLI; the v1 XSD stays for the browser until Phase 26.
+- [x] **XML & XSD v2**: New XSD in `schemas/xml/report/v2/` with a `variant` attribute; `oxy report schema --format xml` returns it. XML v1 export leaves the CLI; the v1 XSD stays for the browser until Phase 32.
 - [x] **XLSX**: Summary sheet with a native pie chart; the full variant adds Entries (autofilter) and Days (bar chart) sheets, with durations as `[h]:mm` numeric cells.
-- [ ] **ODS**: OpenDocument spreadsheet with the same sheet structure.
+- [ ] **ODS**: OpenDocument spreadsheet with the same sheet structure. *Moved* to Phase 24 (CLIX-12).
 
 #### Group C — Billing & Consistency
-- [ ] **CLI Billing View** (*moved* from the former Phase 19, Group F): `ReportDocument` already carries per-task rates and amounts plus per-currency totals with cross-runtime parity; expose them in the summary variant and table output, without a second billing calculation.
-- [ ] **Cross-Format Consistency Test**: Every data format yields the same totals, entry count and per-project sums for one fixture.
+- [ ] **CLI Billing View** (*moved* from the former Phase 19, Group F): `ReportDocument` already carries per-task rates and amounts plus per-currency totals with cross-runtime parity; expose them in the summary variant and table output, without a second billing calculation. *Moved* to Phase 24 (CLIX-13).
+- [ ] **Cross-Format Consistency Test**: Every data format yields the same totals, entry count and per-project sums for one fixture. *Moved* to Phase 24 (CLIX-15).
 
-**Phase Gate:** The cross-format consistency test passes.
+**Phase Gate:** Moved with the cross-format consistency test to Phase 24 (CLIX-15).
 
 ---
 
-### Phase 23 — Human-Readable Reports 🚧 (Planned)
+### Stabilization & Flow Program — CLI and UI (Phases 23–28)
+
+**Goal:** Working with both runtimes and the CLI feels like one continuous movement ("Brazilian Zouk Flow"): the numbers are right in both engines, nothing is deleted or exposed by accident, no screen or command ends in a dead end, and every task takes as few interactions as possible.
+
+**Sources:** [UI/UX flow audit, 2026-11](../reviews/ui-ux-flow-audit-2026-11/README.md) (packages `FLOW-xx`) and [CLI review, 2026-11](../reviews/cli-review-2026-11/README.md) (packages `CLIX-xx`). Each item names its package and links the findings it closes; the findings hold the repro steps, evidence and the regression test to add. Sizes and layers are in the two backlogs.
+
+**Order:** Phase 23 first, because it fixes wrong numbers, unsafe operations and blocked users. Phases 24 (Reports) and 25 (Time Tracking) touch different features and can run in parallel after Phase 23. Phases 26–28 are smaller, mostly independent tracks that can be picked up as soon as their "Depends on" items are in. Packages that change both engines and the parity fixtures (FLOW-01, FLOW-30, CLIX-01, CLIX-08, CLIX-09, CLIX-11) are serialized: only one engine PR per fixture file is open at a time.
+
+**Owner decisions:** UI decisions D1–D4 were answered on 2026-11-14 ([Owner decisions](../reviews/ui-ux-flow-audit-2026-11/README.md#owner-decisions)). CLI decisions OD-1..OD-10 are open ([Owner decisions needed](../reviews/cli-review-2026-11/README.md#owner-decisions-needed)). Items that follow or wait for a decision name it (*D1*–*D4*, *OD-x*).
+
+**Scope:** The browser runtime in the Full and Medium layouts (the desktop receives the shared React fixes without a separate audit), the native `oxy` binary and the in-app CLI in both modes (desktop live mode and browser sandbox). The Compact layout, the tray and the Tauri windows were not audited.
+
+**Rules for every item:** The regression test named in the finding ships with the fix; visual changes attach before and after screenshots to the PR; L-sized packages are split before dispatch; each CLI fix updates the `CLI.md` lines it changes in the same PR.
+
+---
+
+### Phase 23 — Correct Data & Safety 🚧 (In Progress)
+
+**Goal:** Reports and timers show correct numbers in both runtimes, time logs obey the same rules however they are created, nothing is deleted or exposed by accident, and keyboard use never stops a timer or lands on a hidden view.
+
+#### Group A — Test Baseline
+
+- [ ] **Stale Layout Spec** ([FLOW-29](../reviews/ui-ux-flow-audit-2026-11/README.md#follow-ups-found-during-flow-05-review)): `main-layout.spec.ts` expects the `db` tab, which the browser runtime hides. Fixed first so that the e2e suite is a reliable gate for the rest of the program.
+- [ ] **Local Test Robustness** ([CLIX-50](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): The full Vitest run passes locally next to a cargo build without raised timeouts, so the local suites are as reliable a gate as CI. Closes [ARC-11](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-11-p3-local-full-vitest-run-times-out-under-parallel-cargo-load).
+
+#### Group B — Report Data Correctness
+
+- [x] **Report Project Scope** ([FLOW-05](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users) part 1): The report keeps its own multi-project scope, where empty means all projects. Filter chips and donut slices toggle one or many projects, "All" resets the scope, and the Engine filters every card, chart and log list by it. Closes [B-04](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-04-p1-interaction-cost--consistency-project-scope-is-single-select-and-all-does-nothing-known-defect-observable-behaviour) inside the Reports view.
+- [ ] **Sidebar Multi-Select in Reports** ([FLOW-05](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users) part 2): While Reports is active, the projects sidebar toggles the report scope (one or many projects, a selected indicator that does not rely on colour, a one-click reset to all). In Tasks the sidebar keeps selecting the working project. [B-04](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-04-p1-interaction-cost--consistency-project-scope-is-single-select-and-all-does-nothing-known-defect-observable-behaviour).
+- [ ] **Periods in the User's Timezone** ([FLOW-01](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users)): Report periods come from the Engine's timezone-aware period resolution (Phase 19, Group A) instead of UTC arithmetic in `periodRanges.ts`; the "All" period gets a real day count for the daily average; the `last30Days` day count is corrected. [B-13](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-13-p0-data-correctness-period-boundaries-are-computed-in-utc-a-log-made-just-after-local-midnight-is-reported-under-yesterday), [B-01](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-01-p1-data-correctness-daily-average-equals-period-total-for-the-all-period).
+- [ ] **Empty Scope in Billing** ([FLOW-31](../reviews/ui-ux-flow-audit-2026-11/README.md#follow-ups-found-during-flow-05-review)): The `ReportBillingCard` fetch path treats an empty project list the same way as the statistics path instead of reading it as "all projects".
+- [ ] **One Project Rule in Both Engines** ([FLOW-30](../reviews/ui-ux-flow-audit-2026-11/README.md#follow-ups-found-during-flow-05-review)): Rust range metrics filter on `log.project_id`, the browser engine on `task.projectId ?? log.projectId`. One rule, documented in `ENGINEERING.md` and covered by a parity fixture.
+
+#### Group C — Time Log Integrity
+
+- [ ] **Validated `log add`** ([CLIX-01](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): `log add` runs through the Engine and gets the same overlap, future and zero-length rules as `log edit`, in both runtimes, with a parity fixture. Closes [LOG-01](../reviews/cli-review-2026-11/findings-time-logs.md#log-01-p0-log-add-skips-every-validation-that-log-edit-applies).
+- [ ] **Unambiguous `log add` Arguments** ([CLIX-02](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): A duration next to `--from`/`--to` is a conflict, an unparsable duration is an error instead of becoming the note, and notes come only from the note positional or `--note`. Closes [LOG-02](../reviews/cli-review-2026-11/findings-time-logs.md#log-02-p1-duration-argument-silently-dropped-or-turned-into-the-note).
+- [ ] **`log edit` Duration Arithmetic** ([CLIX-03](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): `--duration` applies to the `--end` or `--start` given in the same call; all three flags together are rejected. Closes [LOG-03](../reviews/cli-review-2026-11/findings-time-logs.md#log-03-p1-log-edit---duration-ignores---end-and---start-given-in-the-same-call).
+- [ ] **Local Time Inputs for Logs** ([CLIX-04](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): Naive timestamps in `log add`/`log edit` resolve in the user's zone (`--tz`, then the setting, then the system) like `log ls` and `report`, and the confirmation names the zone. Closes [LOG-04](../reviews/cli-review-2026-11/findings-time-logs.md#log-04-p1-naive-timestamps-are-read-as-utc-and---tz-does-not-apply-to-log-add--log-edit).
+- [ ] **`--exact` Keeps the Prompts** ([CLIX-05](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): `--exact` changes resolution only; the `log rm` confirmation and the `start` prompt depend on the TTY and machine mode alone. Closes [LOG-06](../reviews/cli-review-2026-11/findings-time-logs.md#log-06-p1---exact-disables-the-log-rm-confirmation-and-the-start-prompt). *OD-1 decides the non-TTY rule.*
+
+#### Group D — Timer & Lifecycle Rules
+
+- [ ] **Timer Rules** ([CLIX-08](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): Archived tasks cannot be started, `switch` closes logs by the same rule as `start`, and switching to the running task reports `alreadyRunning`. Both engines and the parity fixtures. Closes [TIM-01](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-01-p1-an-archived-task-can-be-started-or-switched-to), [TIM-03](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-03-p2-switch-closes-every-active-log-and-reopens-an-already-running-task). *Needs OD-2.*
+- [ ] **Completing or Archiving Stops the Timer** ([CLIX-09](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): `task done`, `task archive` and `project archive` close their running logs in the same transaction and say so, in both engines. Closes [TIM-02](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-02-p1-task-done-task-archive-and-project-archive-leave-a-running-timer-open).
+
+#### Group E — Billing Correctness
+
+- [ ] **Billing Rounding Coverage** ([CLIX-10](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety), *moved* from Phase 20, Group B): Boundary assertions for banker's rounding until mutation testing reports no survivors; a malformed or unreadable default rate is an error instead of silent "unconfigured" time, in both engines. Closes [ARC-09](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-09-p2-26-surviving-stryker-mutants-in-bankers-rounding), [RPT-15](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-15-p2-a-malformed-stored-default-rate-silently-turns-billable-time-into-unconfigured-the-settings-read-error-is-swallowed), [ARC-08](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-08-p2-browser-follow-ups-clampingts-location-and-getdefaultratecents-swallowing-errors) (billing part).
+- [ ] **Rate Without Currency** ([CLIX-11](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): One policy for a rate that resolves without a currency and no zero-amount currency buckets, with parity vectors. Closes [RPT-05](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-05-p1-an-amount-is-printed-without-a-currency-when-a-rate-resolves-but-no-currency-does), [RPT-06](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-06-p2-a-currency-bucket-with-amount-0-appears-for-currencies-that-hold-only-unconfigured-time). *Needs OD-3.*
+
+#### Group F — Secrets & Destructive Operations
+
+- [ ] **Secrets Never Printed** ([CLIX-06](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): `config ls`/`config get` mask secret keys unless `--reveal` is given, the webhook token can come from stdin or the environment, and the in-app terminal redacts it from the echo and history. Closes [SUB-01](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-01-p0-config-ls-and-config-get-print-the-external-api-token-in-clear-text), [SUB-02](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-02-p1-webhook-token-travels-as-a-plain-argument-is-stored-in-clear-text-and-is-echoed-into-the-in-app-terminal-history).
+- [ ] **Guarded `db restore`** ([CLIX-07](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): A confirmation like `log rm` (TTY, `--yes`, machine mode), an automatic pre-restore backup and an integrity check of the source. Closes [SUB-05](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-05-p1-db-restore-overwrites-the-live-database-without-confirmation-or-a-pre-restore-backup).
+
+#### Group G (Parallel Track) — Unblocked Keyboard Input
+
+- [ ] **No Accidental Timer Toggle** ([FLOW-02](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users)): Only Ctrl+Space toggles the timer; bare Space no longer does (D3). Inline editors and confirm dialogs return focus to their trigger. [A-21](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-21--p1-data-affecting--interaction-cost--a11y--rename-and-subtask-add-drops-focus-to-body-and-the-global-space-shortcut-then-stops-the-running-timer), [A-32](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-32--p2--a11y--interaction-cost--focus-return-is-inconsistent-billing-and-logs-dialogs-return-focus-to-the-trigger-the-delete-task-confirm-does-not), [C-11](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-11--p2--a11y--reset-dialog-focus-is-not-returned-to-the-trigger-after-escape--prior-expbout). *Needs D3.*
+- [ ] **Alt+Digit Follows the Visible Tabs** ([FLOW-04](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users)): Shortcuts map to the tab list the runtime actually shows. [C-01](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-01--p1--interaction--dead-end--alt3-lands-on-a-hidden-tab-blank-content-no-tab-selected--prior-expa2out-a-alt3-hidden-db).
+- [ ] **Keyboard-Operable Sidebar** ([FLOW-03](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users)): Project rows are focusable and selectable, Tab no longer stops on invisible controls, the action cluster stops taking row width, the edit button has a name. [A-19](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-19--p0-a11y-blocks-keyboard-only--a11y--interaction-cost--projects-cannot-be-selected-with-the-keyboard-sidebar-tab-order-is-28-invisible-stops), [A-01](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-01--p1--visual--data-correctness--sidebar-project-rows-show-a-1-character-description-line--c-cr), [A-34](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-34--p2--sense-of-solution--project-row-shows-hover-only-editarchivereorder-controls-and-double-click-to-rename-and-a-separate-edit-dialog-three-ways-to-edit-one-name-none-discoverable-without-hover), [B-16](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-16-p1-a11y--interaction-cost-keyboard-40-tab-stops-from-the-tab-bar-before-the-reports-first-button-donut-slices-are-not-keyboard-reachable). Runs after the sidebar multi-select, which changes the same rows.
+
+**Phase Gate:** The e2e and Vitest suites pass locally and in CI without raised timeouts. For one seeded dataset, every report period and scope (one project, several, all; with and without a tag filter) gives the same totals in the cards, charts, billing, log list, `oxy report` and `oxy today`, in both engines; `oxy log add` and the GUI reject the same overlapping entry; a keyboard-only run of the Tasks flow never stops the timer by accident; `oxy config ls --json` and the in-app terminal history contain no token; the hands-on CLI session replays without LOG-01..LOG-04, TIM-01, TIM-02, SUB-01 and SUB-05.
+
+---
+
+### Phase 24 — Reports Flow & Exporter Correctness 🚧 (Planned)
+
+**Depends on:** Phase 23 (Groups B and E).
+**Goal:** One scope bar above the numbers it changes, readable charts and logs, exports and printouts that state what they contain, and every CLI format a correct projection of `ReportDocument` with the same totals and amounts.
+
+#### Group A — Scope & Readability
+
+- [ ] **One Sticky Scope Bar** ([FLOW-06](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Period, projects and tags sit in one bar above the numbers, and filtering no longer moves the clicked control. [B-02](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-02-p1-sense-of-solution--interaction-cost-controls-that-change-the-numbers-sit-below-the-numbers-they-change), [B-03](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-03-p1-interaction-cost-filter-block-is-a-4-row-wall-that-grows-with-data), [B-23](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-23-p1-motiontransition-the-period-button-you-just-clicked-moves-under-the-pointer-up-to-1250-px-because-the-filter-sits-below-variable-height-content), [B-14](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-14-p1-motiontransition-selecting-a-donut-slice-or-clearing-the-filter-throws-the-user-to-another-place-in-the-page).
+- [ ] **Readable Cards & Charts** ([FLOW-09](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Stat card labels, legends and the donut title are not clipped; bars for wide periods are aggregated. [B-07](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-07-p1-visual-project-share-title-is-truncated-by-its-own-filter-badge), [B-08](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-08-p1-visual-chart-legends-are-clipped-at-the-card-edges-with-many-projects--long-names), [B-10](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-10-p1-i18n--visual-stat-card-titles-break-mid-word-and-truncate-de-multi-currency), [B-22](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-22-p2-visual--consistency-3-px-wide-daily-bars-with-a-hover-target-of-3-px).
+
+#### Group B — Log List & Billing
+
+- [ ] **Usable Log List** ([FLOW-07](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Usable height, a date per row or day groups, start–end and note, windowed rendering for long lists. [B-18](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-18-p1-interaction-cost--visual-log-list-250-px-nested-scroller-holds-9000-px-of-rows-rows-have-no-date-text-is-10-12-px), [B-15](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-15-p1-performance--motion-every-period-or-project-click-blocks-the-main-thread-for-03-22-s-dev-build).
+- [ ] **One Billing View** ([FLOW-08](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): One representation grouped by project, readable at 390 px, no "UNKNOWN" currency card. [B-05](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-05-p1-responsiveness-billing-table-is-cut-off-at-390px-duration-and-amount-columns-are-not-visible), [B-11](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-11-p2-sense-of-solution-billing-appears-three-times-and-an-unknown-currency-card), [B-12](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-12-p1-sense-of-solution-billing-table-has-no-project-column-rows-ambiguous-in-multi-project-scope).
+- [ ] **Cheaper Log Correction** ([FLOW-12](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Correcting a log from the report takes fewer steps; the reason for the edit is prefilled with a default the user can change, so the audit trail stays complete (D2). [B-19](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-19-p1-interaction-cost-fix-a-wrong-log-found-in-the-report-costs-9-12-interactions-and-a-mandatory-free-text-reason). *Needs D2.*
+
+#### Group C (Parallel Track) — Export & Print
+
+- [ ] **Custom Range & Export Naming** ([FLOW-10](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): The custom range is prefilled and validated; the export dialog and the file name state the period and scope. [B-20](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-20-p1-interaction-cost--consistency-custom-range-starts-empty-and-equal-to-all-needs-two-typed-dates-a-reversed-range-silently-empties-the-report), [B-21](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-21-p2-consistency--i18n-export-dialog-shows-the-raw-period-id-and-no-scope).
+- [ ] **Accessible Export Dialog** ([FLOW-13](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Focus trap and radio-group semantics. [B-17](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-17-p2-a11y-export-modal-focus-escapes-the-dialog-and-the-format-list-is-7-separate-tab-stops).
+- [ ] **Clean Print Document** ([FLOW-11](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): No app chrome, card titles kept, resolved dates and scope printed. [B-24](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-24-p1-consistency--sense-of-solution-print-output-app-chrome-prints-card-titles-vanish-period-has-no-dates-or-project-irrelevant-cards-stay).
+
+#### Group D — CLI Formats on `ReportDocument`
+
+- [ ] **HTML and ODS on `ReportDocument`** ([CLIX-12](../reviews/cli-review-2026-11/README.md#phase-24---reports-flow-and-exporter-correctness), absorbs the Phase 22 "ODS" item and the legacy adapter removal; split into ODS port, HTML port and adapter removal after CLIX-13): Both formats read the document directly, ODS keeps the XLSX sheet structure, and `rows.rs` with `report_tree_adapter.rs` are deleted. Closes [RPT-01](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-01-p1-html-and-ods-fail-on-task-trees-of-depth-3-or-more-because-the-legacy-rows-double-count-nested-subtasks), [RPT-03](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-03-p1-ods-drops-task-less-project-time-so-its-rows-do-not-sum-to-the-total-row), [RPT-16](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-16-p3-legacy-adapter-computes-reporttreedtoentries-that-nothing-reads).
+- [ ] **Table with Variant and Money** ([CLIX-13](../reviews/cli-review-2026-11/README.md#phase-24---reports-flow-and-exporter-correctness), absorbs the Phase 22 "CLI Billing View" item; split into renderer and billing columns): The terminal table renders from the document, honours `--variant`, shows per-currency amounts per project and in the totals line, keeps the subtask hierarchy with the parent name, derives shares from basis points and labels the task count honestly. Closes [RPT-02](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-02-p1---variant-summary-is-ignored-by-table-html-and-ods), [RPT-09](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-09-p2-the-default-table-shows-no-money-although-the-document-carries-billing), [RPT-10](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-10-p2-table-flattens-nested-subtasks-to-one-level-and-loses-the-parent-name), [RPT-11](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-11-p3-table-and-html-round-shares-as-f64-every-other-format-as-half-even-basis-points), [RPT-12](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-12-p3-duration-and-task-count-conventions-differ-by-format-and-are-undocumented) (label).
+- [ ] **XLSX Conventions and Determinism** ([CLIX-14](../reviews/cli-review-2026-11/README.md#phase-24---reports-flow-and-exporter-correctness)): One task-amount convention, UTC-labelled time columns and fixed document properties so two exports are byte-identical. The XLSX and ODS files are opened once in Excel and LibreOffice and the result is recorded (the manual check open since PR #148). Closes [RPT-04](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-04-p1-xlsx-task-amount-is-cumulative-while-csv-json-and-xml-carry-the-direct-amount), [RPT-07](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-07-p2-xlsx-mixes-a-local-date-with-unlabelled-utc-startend), [RPT-08](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-08-p2-xlsx-bytes-differ-between-runs). *Needs OD-4.*
+- [ ] **Cross-Format Consistency Test** ([CLIX-15](../reviews/cli-review-2026-11/README.md#phase-24---reports-flow-and-exporter-correctness), *moved* from Phase 22, Group C): Every format and variant yields the same totals, entry count, per-project sums and per-task amounts for one fixture. Verifies [RPT-02](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-02-p1---variant-summary-is-ignored-by-table-html-and-ods) and [RPT-04](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-04-p1-xlsx-task-amount-is-cumulative-while-csv-json-and-xml-carry-the-direct-amount).
+- [ ] **Delivery Edge Cases** ([CLIX-16](../reviews/cli-review-2026-11/README.md#phase-24---reports-flow-and-exporter-correctness)): `report schema -o -` writes to stdout, the CSV flags are either ignored or rejected in envelope mode (documented either way), and the variant check runs before the table branch. Closes [RPT-13](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-13-p3-report---json---csv-delimiter-fails-although---format-is-ignored-in-machine-mode), [RPT-14](../reviews/cli-review-2026-11/findings-reports-and-exporters.md#rpt-14-p2-report-schema--o---writes-a-file-named--).
+
+**Phase Gate:** At 1440 px, changing the scope and reading the result needs no scrolling and the clicked control stays in place; exports and printouts show the period dates and the project scope; the cross-format consistency test passes for every `oxy report` format and both variants; `report_tree_adapter.rs` and `rows.rs` no longer exist; a depth-4 task tree exports to HTML and ODS.
+
+---
+
+### Phase 25 — Time Tracking Flow: Timer, Tasks & Logs 🚧 (Planned)
+
+**Depends on:** Phase 23 (Groups C, D and G).
+**Goal:** A keyboard-first entry chain from project to running timer in the GUI, on a layout that does not jump, and CLI commands that name what they did, find what the user meant and never need a copied UUID.
+
+#### Group A — Stable Geometry & Clean Rows
+
+- [ ] **Stable Geometry** ([FLOW-15](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): One banner height for idle, active and break; a symmetric Full ↔ Medium switch. [A-05](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-05--p1--motiontransition--startingstopping-the-timer-shifts-the-whole-project-sheet-by-9px), [A-22](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-22--p2--motiontransition--take-break-swaps-the-active-banner-for-a-taller-break-banner-the-whole-task-sheet-jumps-down-18px-and-back), [A-28](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-28--p1--motiontransition--layout-switch-full--medium-is-asymmetric-fullmedium-snaps-mediumfull-animates-the-frame-while-the-full-layout-is-already-rendered-inside-it).
+- [ ] **Task Row & Header Cleanup** ([FLOW-16](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): One status concept, no `Entity #id` line, badge spacing, no "SELECT PROJECT" eyebrow above a selected project, compact stats, long names wrap. [A-03](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-03--p1--sense-of-solution--timer-start-produces-a-second-parallel-status-chip-and-raw-entity-id-debug-line-on-every-task), [A-04](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-04--p2--visual--in-progress-badge-glyph-collides-with-its-label-n-progress), [A-07](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-07--p1--sense-of-solution--task-stats-and-project-header-duplicate-the-same-number-three-times), [A-08](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-08--p2--consistency--eyebrow-select-project-is-shown-above-an-already-selected-project), [A-11](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-11--p2--i18nvisual--long-task-name-truncated-with--at-45-chars-although-the-row-has-free-width), [A-09](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-09--p1--interaction-cost--task-actions-billing--logs-rename-delete-are-icon-only-appear-only-on-hover-12px-low-contrast).
+
+#### Group B — Keyboard-First Entry
+
+- [ ] **Entry Chain** ([FLOW-14](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): Focus moves from a new project to the task input; the subtask input takes focus and accepts batch entry; a new task scrolls into view; Medium selects the created project and closes its form on Esc. [A-20](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-20--p1--interaction-cost--after-add-project-via-enter-focus-stays-in-the-project-input-the-next-natural-step-task-name-needs-a-pointer-click), [A-14](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-14--p1--interaction-cost--subtask-creation--subtask-opens-an-inline-form-but-focus-is-not-moved-to-its-input-and-enter-keeps-the-form-open), [A-31](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-31--p1--interaction-cost--a-newly-added-task-is-appended-below-the-fold-and-the-list-is-not-scrolled-to-it), [A-30](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-30--p1--interaction-cost--consistency--medium-creating-a-project-does-not-select-it-full-does-and-gives-no-confirmation), [A-06](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-06--p1--interaction-cost--a11y--medium-layout-esc-does-not-close-the-new-project-form-and-the-open-form-covers-the-task-list-so-start-buttons-cannot-be-clicked).
+
+#### Group C — Responsive Pass
+
+- [ ] **Responsive Pass** ([FLOW-17](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow), split per view): 1024 px sidebar, long project names, phone-width Full layout, subtask rows at 390 px, touch target sizes, Settings tables at 390 px, Medium tiles. [A-24](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-24--p1--responsiveness--full-layout-at-1024x768-sidebar-is-squeezed-so-project-names-are-cut-to-12-characters-and-the-add-new-project-button-overflows-its-card), [A-25](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-25--p1--responsiveness--visual--long-project-name-is-hard-clipped-no-ellipsis-in-the-medium-sheet-header-and-collides-with-total-in-full-all-themeslocalessizes), [A-16](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-16--p1--responsiveness--interaction-cost--phone-390px-full-the-projects-list-fills-the-first-screen-tasks-are-reached-only-after-scrolling-past-7-projects-110px-each), [A-17](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-17--p1--responsiveness--a11y--phone-medium-subtask-row-action-glyphs--clock-overlap-the-todo-chip-sticky-banner-hides-the-running-timer-card), [A-26](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-26--p2--responsiveness--phone-390-full-stat-card-labels-clipped-total-duration-total-tasks-completed-tasks-and-the-footer-license-link-overlaps-the-last-visible-tag-chip), [A-27](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-27--p2--a11y--responsiveness--interactive-targets-below-24px-wcag-258-minimum-on-the-tasks-screen-including-on-touch), [B-06](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-06-p1-responsiveness--interaction-cost-full-layout-on-a-phone-the-report-is-buried-under-the-whole-projects-sidebar), [C-29](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-29--p1--visual--responsiveness--medium-settings-quick-language-tiles-truncated-to-one-letter-status-banner-overlaps-timer-card--shots-g-med-1440-settings-g-med-390-settings), [C-32](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-32--p1--responsiveness--390x844-holidays-table-hides-editdelete-off-screen-headings-and-footer-clipped--expiout-shot-390-dark-settings-default), [C-15](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-15--p2--responsiveness--390x844-language-tile-label-truncated--prior-m3json). Runs after Groups A and B; measured at the medium text size, and FLOW-24 repeats the checks at small and large.
+
+#### Group D — Decision-Dependent
+
+- [ ] **Starter Templates Worth the Click** ([FLOW-18](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): Readable first-run cards; each template creates its project with two or three starter tasks (D4). [A-02](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-02--p1--visual--starter-template-cards-on-first-run-description-text-overlaps-the-neighbour-card), [A-35](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-35--p2--sense-of-solution--quick-starter-templates--launch-your-workflow-with-one-click-creates-only-an-empty-project-cards-give-no-readable-title-or-description). *Needs D4.*
+- [ ] **Medium Layout Chrome** ([FLOW-19](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): Medium is the PWA phone layout (D1): it fills the window, and its chrome and tab bar are sized for a phone screen. [A-12](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-12--p1--responsiveness--medium-layout-at-1024px-renders-a-500px-column-docked-to-the-right-with-an-empty-500px-void-on-the-left), [A-13](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-13--p2--visual--medium-tab-bar-active-tab-pill-clipped-at-left-edge-labels-icon-only), [A-33](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-33--p2--sense-of-solution--responsiveness--medium-layout-leaves-42-of-the-window-for-tasks). *Needs D1.*
+
+#### Group E — CLI Flow Messages & Lifecycle
+
+- [ ] **Flow Messages** ([CLIX-17](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs), absorbs the former Phase 24, Group B item "Flow Messages", now Phase 30): Confirmations name the task and project instead of a UUID, `stop` names the task and its elapsed time, idle status is a sentence, and one duration format comes from `human_duration.rs`. Closes [TIM-04](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-04-p2-stop-and-status-messages-are-jargon-and-name-nothing), [TIM-05](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-05-p2-human-output-prints-uuids-instead-of-names), [TIM-12](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-12-p2-per-entry-durations-use-mmm-sss-while-totals-use-hhh-mmm).
+- [ ] **Lifecycle Visibility** ([CLIX-18](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs)): `task ls` says how many completed or archived tasks are hidden, `task reopen`, `task restore` and `project restore` exist, and the completed-task error names the way back. Closes [TIM-06](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-06-p2-done-and-archived-tasks-vanish-without-a-hint-no-reopen-or-restore).
+- [ ] **Project List and Rename Messages** ([CLIX-19](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs)): Active task counts with plural forms, a rename confirmation that names the changed fields, and an error that lists every accepted flag. Closes [TIM-07](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-07-p2-project-ls-counts-archived-tasks-and-prints-1-tasks), [TIM-10](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-10-p3-project-rename-with-billing-flags-says-only-updated-project-uuid-stale-error-text).
+- [ ] **Deterministic Default Project** ([CLIX-20](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs)): `task add` without `-p` picks a defined project and says which. Closes [TIM-08](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-08-p2-default-project-for-task-add-is-the-first-row-of-an-unordered-query).
+- [ ] **Entity Command Hygiene** ([CLIX-25](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs)): Same-project `task move` is an explicit no-op and the cascade is one transaction, colors are validated, and the dashboard lists every active session. Closes [TIM-09](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-09-p3-task-move-same-project-no-op-reports-success-cascade-is-not-atomic), [TIM-11](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-11-p3-project-color-is-never-validated), [TIM-13](../reviews/cli-review-2026-11/findings-timer-and-entities.md#tim-13-p3-a-dangling-active-log-fails-status---json-and-the-dashboard-the-dashboard-shows-one-session).
+
+#### Group F — CLI Target Resolution & Log Ergonomics
+
+- [ ] **Resolver Rules** ([CLIX-21](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs)): IDs match by prefix only, typo suggestions ignore case, strict mode returns candidates for an ambiguous name, and a bad selection re-prompts. Closes [RES-01](../reviews/cli-review-2026-11/findings-timer-and-entities.md#res-01-p2-lenient-resolver-matches-id-suffixes-and-id-substrings-before-names), [RES-02](../reviews/cli-review-2026-11/findings-timer-and-entities.md#res-02-p2-strict-mode-reports-an-ambiguous-name-as-not-found-with-no-candidates), [RES-03](../reviews/cli-review-2026-11/findings-timer-and-entities.md#res-03-p2-typo-suggestion-compares-a-lowercased-target-with-original-case-names), [RES-04](../reviews/cli-review-2026-11/findings-timer-and-entities.md#res-04-p3-a-non-numeric-answer-to-the-selection-prompt-cancels-instead-of-re-asking).
+- [ ] **Log Targets by Prefix and `last`** ([CLIX-22](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs)): `log edit` and `log rm` accept a unique 8+ character prefix and `last`. Closes [LOG-07](../reviews/cli-review-2026-11/findings-time-logs.md#log-07-p2-log-ids-must-be-typed-in-full-the-prompt-shows-a-prefix-the-command-rejects).
+- [ ] **Log List in the Resolved Zone** ([CLIX-23](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs)): Human rows show local time with an offset; machine timestamps are whole-second `Z` instants. Closes [LOG-05](../reviews/cli-review-2026-11/findings-time-logs.md#log-05-p2-log-ls-prints-utc-without-a-zone-marker-json-timestamps-mix-formats).
+- [ ] **Bounded Durations** ([CLIX-24](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs)): Checked arithmetic and an upper bound in the duration parser. Closes [LOG-08](../reviews/cli-review-2026-11/findings-time-logs.md#log-08-p2-huge-durations-overflow-and-panic).
+- [ ] **Active-Log and Overlap Queries** ([CLIX-26](../reviews/cli-review-2026-11/README.md#phase-25---time-tracking-flow-timer-tasks-and-logs)): Repository queries for active logs and overlap-by-window replace the full-table scans in `status --json`, the dashboard, `validate_time_log` and `log ls`; the resolver loads once per command. Closes [ARC-06](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-06-p2-status---json-and-the-dashboard-scan-the-whole-time-log-table), [ARC-07](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-07-p2-full-table-scans-in-validate_time_log-log-ls-the-resolver-and-project-ls).
+
+**Phase Gate:** Creating a project, a task and a subtask and starting the timer works by keyboard alone without a layout jump; no text is clipped at 390, 1024 and 1440 px; the hands-on CLI session replays with every confirmation naming the entity, no UUID required for `log edit`/`log rm`, and `oxy status` readable without a second command.
+
+---
+
+### Phase 26 — CLI Machine Contract Hardening 🚧 (Planned)
+
+**Depends on:** Phase 23 (Group C), Phase 25 (Group E, for the message texts that `-q` suppresses).
+**Goal:** Every `oxy` command behaves the same way for a script as for a person: `-q` works everywhere, error codes and remediation match the cause, and nothing decorative lands in captured output.
+
+#### Group A — Script-Safe Output
+
+- [ ] **`-q` for Every Command** ([CLIX-27](../reviews/cli-review-2026-11/README.md#phase-26---cli-machine-contract-hardening)): `stop`, `status`, `today`, the dashboard and the subsystem commands honour `-q`, and `cli_quiet_mode_test.rs` covers all of them on the real binary. Closes [MCH-01](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-01-p1--q-is-ignored-by-stop-status-today-the-dashboard-config-sink-mask-db-and-doctor). *Needs OD-9.*
+- [ ] **Undecorated Captured Values** ([CLIX-31](../reviews/cli-review-2026-11/README.md#phase-26---cli-machine-contract-hardening)): `config get`, receipts and `-q` output carry no prefix; decoration appears only on a TTY without `NO_COLOR`, through the existing `detect_decoration`. Closes [MCH-03](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-03-p2-every-human-success-line-is-prefixed-with-a-check-mark-including-captured-values).
+
+#### Group B — Error Classes & Remediation
+
+- [ ] **Remediation per Error Class** ([CLIX-28](../reviews/cli-review-2026-11/README.md#phase-26---cli-machine-contract-hardening)): Business errors, a missing database file and mask errors each get advice that matches the cause. Closes [MCH-02](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-02-p1-remediation-text-is-wrong-for-business-errors-and-for-a-missing-database-file).
+- [ ] **Error Classification** ([CLIX-29](../reviews/cli-review-2026-11/README.md#phase-26---cli-machine-contract-hardening)): Path resolution failures are `STO_SQLITE_INIT`, the `db restore` source code is decided, and `doctor`/`sink test` failures are structured envelopes instead of JSON inside `technical`. Closes [MCH-05](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-05-p2-error-classification-gaps-path-resolution-db-restore-source-doctor-and-sink-test-failures).
+- [ ] **Machine Mode from Parsed Flags** ([CLIX-30](../reviews/cli-review-2026-11/README.md#phase-26---cli-machine-contract-hardening)): Machine mode comes from the parsed flags instead of an argv scan, a missing subcommand produces an envelope, and human-mode clap errors use the oxy banner and did-you-mean format. Closes [MCH-04](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-04-p2-machine-mode-is-detected-by-scanning-every-argv-token-a-missing-subcommand-prints-clap-text-in-machine-mode), [MCH-06](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-06-p2-human-mode-clap-errors-and-oxy-errors-use-two-different-formats).
+- [ ] **Typed Resolver Storage Errors** ([CLIX-34](../reviews/cli-review-2026-11/README.md#phase-26---cli-machine-contract-hardening)): `ResolveError` carries the `PersistenceError`, so initialization and constraint failures keep their codes. Closes [ARC-04](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-04-p2-resolver-storage-errors-are-stringly-typed-and-always-become-sto_sqlite_query).
+
+#### Group C — Envelope Payloads
+
+- [ ] **Names in `oxy.log.list`** ([CLIX-32](../reviews/cli-review-2026-11/README.md#phase-26---cli-machine-contract-hardening)): Items carry `taskName` and `projectName`. Closes [MCH-07](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-07-p2-log-ls---json-carries-ids-only-no-task-or-project-names).
+- [ ] **One Envelope Convention** ([CLIX-33](../reviews/cli-review-2026-11/README.md#phase-26---cli-machine-contract-hardening)): Error envelope casing, the `report schema` export envelope, the `start`/`today` payload identities and `ENG_TIMER_ACTIVE` are settled in one breaking change before `1.16.0`. Closes [MCH-08](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-08-p2-error-envelope-keys-are-snake_case-report-schema--o---machine-is-not-an-envelope), [MCH-09](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-09-p3-oxy-today---json-wraps-a-document-that-carries-its-own-schema-start-without-a-target-emits-oxystatus), [MCH-11](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-11-p3-eng_timer_active-is-declared-and-documented-but-never-emitted). *Needs OD-7.*
+
+**Phase Gate:** `cli_quiet_mode_test.rs` and `cli_json_contract_test.rs` cover every command on the real binary; for each error class one subprocess test asserts code, exit code and remediation; `oxy config get cli_machine_locale | cat` prints exactly `en`.
+
+---
+
+### Phase 27 — In-App CLI & Sandbox Parity 🚧 (Planned)
+
+**Depends on:** Phase 25 (Group E, message texts), Phase 26 (envelope conventions).
+**Goal:** The in-app terminal accepts what the native binary accepts, says what the native binary says, and the parity harness proves it against the real binary.
+
+OD-10 decides whether CLIX-37 and CLIX-40 patch the sandbox mirrors or pull the sandbox delegation to the Engine (Phase 34, Group C) forward for timer operations and metrics. Until it is answered, the items stay as written.
+
+#### Group A — Input Routing & Validation
+
+- [ ] **Global Flags in the Sandbox** ([CLIX-35](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): Leading global flags are routed and the short `-j`/`-m`/`-q` forms are honoured. Closes [SBX-01](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-01-p1-leading-global-flags-are-not-routed-in-the-sandbox), [SBX-02](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-02-p2-short--j---m-are-parsed-but-never-honoured).
+- [ ] **Sandbox Validation Parity** ([CLIX-36](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): `log add` grammar and flags, project rename, task rate parsing and the parent/project rule match the native binary. Closes [SBX-03](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-03-p2-sandbox-log-add-invents-a-30-minute-default-turns-an-invalid-duration-into-0-s-and-ignores---from---to---note), [SBX-06](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-06-p2-sandbox-accepts-an-empty-project-rename-any-task-rate-string-and-a-parentproject-mismatch).
+- [ ] **Honest "Not in Sandbox"** ([CLIX-38](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): Unmirrored commands get a dedicated error with a stable code instead of "Unknown command". Closes [SBX-05](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-05-p2-missing-sandbox-commands-fall-through-to-unknown-command).
+- [ ] **Explicit `--db` in the In-App Terminal** ([CLIX-51](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): Desktop live mode rejects a non-existent `--db` path like the native binary instead of creating an empty database. Closes [SBX-13](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-13-p2-desktop-live-mode-creates-a-new-empty-database-for-a-mistyped---db-path).
+
+#### Group B — Metrics, Help & Messages
+
+- [ ] **Sandbox Metrics** ([CLIX-37](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): Today, week and subtask totals are correct. Closes [SBX-04](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-04-p2-sandbox-metrics-today-and-this-week-totals-equal-all-time-task-totals-exclude-subtasks). *Needs OD-10.*
+- [ ] **Help and Legacy Commands** ([CLIX-39](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): In-app help reflects the active backend; the legacy browser commands use the user's zone for "today", fail `stop all` on idle and show full log dates. Closes [SBX-08](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-08-p2-desktop-in-app-help-lists-legacy-commands-that-the-native-parser-rejects), [SBX-10](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-10-p2-legacy-browser-commands-utc-today-stop-all-succeeds-on-idle-truncated-log-dates).
+- [ ] **Mirrored Messages** ([CLIX-40](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): Sandbox flow messages use the native constants after CLIX-17, and one table renderer draws the sandbox lists. Closes [SBX-07](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-07-p2-human-text-diverges-from-the-native-binary-for-every-flow-command), [SBX-12](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-12-p3-sandbox-project-list-footer-has-four-columns-the-header-three). *Needs OD-10.*
+
+#### Group C — Parity Proof & Layering
+
+- [ ] **Parity Harness on the Real Binary** ([CLIX-41](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity), split into harness and fixtures): Machine-mode fixture rows run through a subprocess of `oxy` and through the sandbox, comparing envelope data; fixtures cover the missing domains and the count in `CLI.md` is corrected. Closes [SBX-09](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-09-p2-parity-harness-compares-nothing-with-the-native-binary-and-misses-whole-domains).
+- [ ] **Resolver Layering** ([CLIX-42](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): Shared CLI envelope helpers leave the sandbox router. Closes [SBX-11](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-11-p3-entityresolverts-depends-on-the-sandbox-router).
+
+**Phase Gate:** Every parity fixture row passes against both the sandbox and the real binary; `--json start` typed into the in-app terminal returns an `oxy.start` envelope in both modes; no in-app help line names a command the active backend rejects.
+
+---
+
+### Phase 28 — Shell & Subsystem Truthfulness 🚧 (In Progress)
+
+**Goal:** The browser app and the CLI promise only what they do: no false health, no dead flags, no desktop-only wording in the browser, tabs and Settings speak one language, motion and scale follow the user's preferences, and `CLI.md` matches the parser.
+
+#### Group A (Parallel Track) — Truthful Copy
+
+- [ ] **Runtime-Aware Copy** ([FLOW-20](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): No Rust, SQLite, tray or daemon wording, no dead footer link, no false shortcut tiles or Manual title in the browser; the status banner and the "Registered today" value are correct. [C-02](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-02--p1--stale-content--sense-of-solution--manual-tab-shortcut-card-describes-desktop-tray-behaviour-in-the-browser--prior-1440-light-manual-expanded), [C-03](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-03--p2--stale-content--manual-tab-title-and-subtitle-promise-content-that-is-not-there-section-numbering-starts-at-ii--prior-1440-light-manual-expanded), [C-05](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-05--p1--stale-content--sense-of-solution--browser-runtime-still-advertises-native-stack--prior-all-shots), [C-18](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-18--p1--stale-content--manual-tab-hides-the-compilation-guide-in-the-browser-so-the-titledescription-describe-a-page-that-does-not-exist-here--code-manualtabtsx), [C-19](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-19--p1--stale-content--shortcut-card-is-not-capability-gated-except-cli-row--code-keyboardshortcutscardtsx29-52), [C-25](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-25--p1--sense-of-solution--dead-end--footer-database-management-link-does-nothing-in-the-browser--expeout-shots-e-db-link), [B-09](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-09-p2-data-correctness-registered-today-in-the-timer-banner-is-not-todays-time).
+- [ ] **One Version Number** ([FLOW-21](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): One version in the header; Credits content and versions in one place. [C-04](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-04--p1--consistency--stale-content--three-different-version-numbers--prior-all-shots-header-1440-light-settings-expanded), [C-22](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-22--p2--sense-of-solution--credits-tab-content-is-personal-copy-partly-inaccurate-for-the-browser--code-creditstabtsx10-screenshot-1440-light-credits-expanded).
+- [ ] **Documentation Drift** ([FLOW-28](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): User guide themes and paths, CHANGELOG release headings, the locale count in the manifesto. [C-21](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-21--p2--stale-content--user-guide-and-readme-disagree-with-the-real-ui--docs-vs-ui).
+
+#### Group B (Parallel Track) — Header, Settings & Preferences
+
+- [ ] **Locale-Independent Header** ([FLOW-23](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): Header geometry does not depend on the locale; language has one home; layout and text size are named distinctly; each tab label equals its view heading. [C-13](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-13--p1--motion--layout-shift--switching-language-moves-header-and-tab-bar--prior-expdout), [C-14](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-14--p2--sense-of-solution--language-can-be-set-in-three-places--prior-1440-light-settings-expanded), [C-24](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-24--p2--a11y--i18n--consistency--header-controls-naming-and-accessible-names--expeout-header-buttons), [C-27](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-27--p2--i18n--leftovers-and-naming-drift-across-locales-expfout).
+- [ ] **Settings Polish** ([FLOW-27](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): Headings without jargon, card order and default expansion, the hours-limit field, translation key validation, the import error message, no toast for changes that are already visible. [C-06](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-06--p2--consistency--visual--duplicate-and-developer-jargon-headings-in-settings--prior-1440-light-settings-expanded), [C-07](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-07--p2--sense-of-solution--order-of-settings-cards-reset-separated-from-backup--prior-1440-light-settings-expanded), [C-08](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-08--p1--interaction--validation--auto-stop-hours-field-max-not-enforced-clearing-snaps-to-1--prior-expa2out), [C-09](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-09--p1--interaction--validation-feedback--invalid-backup-file-generic-message-stays-on-screen--prior-expcout), [C-10](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-10--p2--consistency--custom-translation-editor-accepts-unknown-keys-silently--prior-expcout), [C-30](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-30--p2--interaction-cost--consistency--needless-confirmation-toast-for-an-instant-visible-change--expg2out), [C-33](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-33--p2--consistency--default-expansion-state-of-settings-cards-is-arbitrary--expiout).
+- [ ] **Reduced Motion** ([FLOW-25](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): `prefers-reduced-motion` is honoured. [A-29](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-29--p2--a11y--motion--prefers-reduced-motion-reduce-is-not-honoured-by-the-pulseping-indicators), [C-12](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-12--p2--a11y--motion--prefers-reduced-motion-is-not-honoured-by-the-active-tab-icon--prior-expdout).
+
+#### Group C — Reach & Install
+
+- [ ] **Everything Reachable in Medium** ([FLOW-22](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): Backup is a regular tab in the Medium layout; Manual, Credits and other secondary destinations are icon-only buttons with an accessible name and a tooltip on hover, keyboard focus and long press (D1). [C-28](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-28--p1--sense-of-solution--dead-end--medium-layout-cannot-reach-backup-manual-credits-versions-or-reset--expg3out-shots-g-med-), [C-23](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-23--p2--consistency--medium-layout-exposes-only-tasks--reports--settings--code-navigationts). *Needs D1.*
+- [ ] **Discoverable PWA Install** ([FLOW-26](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): The app offers installation where the browser supports it. [C-20](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-20--p1--stale-content--pwa-nothing-tells-the-user-how-to-install-it--code-appbrowsertsx16-platformcapabilitiescontextts12), [C-26](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-26--p1--stale-content--pwa-install-not-discoverable-supports-c-20).
+
+#### Group D — Scale
+
+- [ ] **Text and Icon Size Scales the Whole UI** ([FLOW-24](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency), token audit, split before dispatch): Not only the tab bar. [C-31](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-31--p1--consistency--sense-of-solution--text-and-icon-size-control-only-scales-the-tab-bar-not-the-settings-content--expjout-shots-h-text-large-settings). Repeats the FLOW-17 checks at the small and large sizes.
+
+#### Group E (Parallel Track) — CLI Subsystem Truthfulness
+
+- [ ] **Honest `sink test`** ([CLIX-43](../reviews/cli-review-2026-11/README.md#phase-28---shell-and-subsystem-truthfulness)): A webhook check says "syntax only, not contacted" without a healthy badge, and the CSV check has no side effects. Closes [SUB-03](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-03-p1-sink-test-calls-a-webhook-healthy-after-checking-only-the-url-prefix), [SUB-10](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-10-p3-csv-sink-test-creates-the-directory-as-a-side-effect).
+- [ ] **No Dead `doctor --fix`** ([CLIX-44](../reviews/cli-review-2026-11/README.md#phase-28---shell-and-subsystem-truthfulness)): The flag is removed, or hidden until the recovery manager (Phase 43) implements it. Closes [SUB-04](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-04-p2-doctor---fix-is-accepted-and-never-read). *Needs OD-6.*
+- [ ] **Config Key Registry** ([CLIX-45](../reviews/cli-review-2026-11/README.md#phase-28---shell-and-subsystem-truthfulness)): `config set` validates against a registry of known keys with per-key validation; the registry also marks the secret keys that CLIX-06 masks. Closes [SUB-06](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-06-p2-config-set-accepts-any-key). *Needs OD-8.*
+- [ ] **Mask Hardening** ([CLIX-46](../reviews/cli-review-2026-11/README.md#phase-28---shell-and-subsystem-truthfulness)): Mask expansion shares the global flag list with clap, built-in names are reserved, and `$10` tokens expand correctly. Closes [SUB-07](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-07-p2-mask-expansion-drops---tz-and---exact-and-treats-the---tz-value-as-an-alias-or-positional), [SUB-08](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-08-p2-a-mask-named-like-a-built-in-command-shadows-it), [SUB-09](../reviews/cli-review-2026-11/findings-subsystems-and-security.md#sub-09-p3-1-is-replaced-inside-10).
+
+#### Group F — CLI Contract Documentation
+
+- [x] **`CLI.md` Rebuilt from the Drift Checklist** ([CLIX-47](../reviews/cli-review-2026-11/README.md#phase-28---shell-and-subsystem-truthfulness), delivered with the review): Every DOC row fixed, added or marked as a known defect, including the note that `cli_machine_locale` changes no output until Phase 33. Closes [DOC-01..DOC-65](../reviews/cli-review-2026-11/findings-docs-drift.md), [MCH-10](../reviews/cli-review-2026-11/findings-machine-contract.md#mch-10-p3-cli_machine_locale-is-validated-and-stored-but-changes-no-output).
+
+**Phase Gate:** In the browser runtime no text mentions Rust, SQLite, the tray or the daemon; every tab label equals its view heading; Backup, Manual and Credits are reachable from every layout; reduced motion turns transitions off; the large text size scales every view; `oxy sink test` never says healthy for an uncontacted endpoint; after the phase's fixes, every command, flag and alias in `oxy --help` still appears in `CLI.md` and nothing in `CLI.md` is missing from the parser.
+
+---
+
+### v1.16 Program — continued (Phases 29–33)
+
+The remaining v1.16 feature work, numbered after the Stabilization & Flow Program; the `1.16.0` release gate in the program header above applies.
+
+---
+
+### Phase 29 — Human-Readable Reports 🚧 (Planned)
 
 **Depends on:** Phase 20, Phase 22 (Group A).
 **Goal:** Client-ready reports in the user's language, generated from the same document as the data formats.
@@ -444,28 +692,29 @@ The phases follow the logical order of the work, not strictly the delivery order
 #### Group B — Layout & Formats
 - [ ] **Shared Report Layout & SVG Charts**: One layout model and a generated SVG chart set, keys added to the `report` domain in all 10 locales.
 - [ ] **Markdown**, **Print-Ready HTML**, **DOCX** and **ODT** (ODT conditional on the format decision recorded in the CLI reports plan).
+- [ ] **`--lang` for Locale-Dependent Formats** (*moved* from Phase 22, Group A): The registry already marks which formats depend on the locale; `--lang` selects it for them.
 - [ ] **Entries & Notes Switches**: `--entries` and `--no-notes` for the human formats.
 
 **Phase Gate:** Golden tests pass, and the files open in Word and LibreOffice without warnings (manual check).
 
 ---
 
-### Phase 24 — Terminal Output 🚧 (In Progress)
+### Phase 30 — Terminal Output 🚧 (In Progress)
 
-**Depends on:** Phase 19. Can run in parallel with Phases 20–23.
+**Depends on:** Phase 19. Can run in parallel with Phase 29.
 
 #### Group A — Rendering
 - [x] **Table Renderer & Decoration Detection**: Shared table renderer, human duration format, TTY and `NO_COLOR` detection.
 
 #### Group B — Messages & Help
-- [ ] **Flow Messages**: Consistent `start` / `stop` / `status` messages, short IDs and no decorative symbols in lists.
+- [ ] **Flow Messages**: Consistent `start` / `stop` / `status` messages, short IDs and no decorative symbols in lists. *Moved* to Phase 25 (CLIX-17).
 - [ ] **Lists & Help**: `project ls` with rates, help with examples and separated global flags.
 
 ---
 
-### Phase 25 — Pipeline Readiness 🚧 (In Progress)
+### Phase 31 — Pipeline Readiness 🚧 (In Progress)
 
-**Depends on:** Phase 19, Phase 22.
+**Depends on:** Phase 19, Phase 22, Phase 24 (CLIX-14, deterministic XLSX bytes).
 **Goal:** Reports can be generated unattended and consumed by other programs.
 
 #### Group A — Safe Inputs
@@ -482,9 +731,9 @@ The phases follow the logical order of the work, not strictly the delivery order
 
 ---
 
-### Phase 26 — Browser Export Parity 🚧 (Planned)
+### Phase 32 — Browser Export Parity 🚧 (Planned)
 
-**Depends on:** Phase 20 (Group B), Phase 22, Phase 23.
+**Depends on:** Phase 20 (Group B), Phase 22, Phase 29.
 
 #### Group A — Exporters on the Shared Model
 - [ ] **TypeScript Exporters on `ReportDocument`**: Browser exporters consume the generated bindings instead of their own report shapes.
@@ -492,9 +741,9 @@ The phases follow the logical order of the work, not strictly the delivery order
 
 ---
 
-### Phase 27 — Terminal & Error Localization 🚧 (Planned)
+### Phase 33 — Terminal & Error Localization 🚧 (Planned)
 
-**Depends on:** Phase 23 (Group A), Phase 24.
+**Depends on:** Phase 29 (Group A), Phase 30.
 
 #### Group A — Localized Output
 - [ ] **Localized Terminal Messages**: Lists, confirmations and the dashboard read their text from the `cli` domain.
@@ -505,7 +754,7 @@ The phases follow the logical order of the work, not strictly the delivery order
 
 ---
 
-### Phase 28 — Engine Parity, CLI Modularity & Structural Hygiene 🚧 (Planned)
+### Phase 34 — Engine Parity, CLI Modularity & Structural Hygiene 🚧 (Planned)
 
 Architecture debt identified by reviewing the codebase at `62877c4`. Each group is an architecture change and must be approved separately from feature work (see `AGENTS.md`, Refactoring scope).
 
@@ -516,18 +765,20 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Native Validation via IPC**: `TauriValidationEngine` currently delegates to the browser implementation in `@plugins/engine/validation`. Route validation through `src-tauri/src/engine/validation.rs` via Tauri commands and confirm the cross-runtime parity matrix covers it.
 
 #### Group C (Parallel Track) — Sandbox Delegation to Engine
-- [ ] **Sandbox Engine Delegation**: `sandboxTimerOps`, `sandboxTaskOps`, `sandboxProjectOps` and `sandboxMetricsCalculator.ts` re-implement timer and metrics logic. Delegate to `IEngine` so each runtime keeps a single implementation. The v1.16 program (Phases 19–27) added further sandbox mirrors (envelopes, quiet output, `log rm`, period flags, error details) and a browser report engine (`EnginePlugin.buildReport`) that this delegation should reuse; until then, new sandbox copies are limited to what the parity matrix requires.
+- [ ] **Sandbox Engine Delegation**: `sandboxTimerOps`, `sandboxTaskOps`, `sandboxProjectOps` and `sandboxMetricsCalculator.ts` re-implement timer and metrics logic. Delegate to `IEngine` so each runtime keeps a single implementation. The v1.16 program (Phases 19–33) added further sandbox mirrors (envelopes, quiet output, `log rm`, period flags, error details) and a browser report engine (`EnginePlugin.buildReport`) that this delegation should reuse; until then, new sandbox copies are limited to what the parity matrix requires. OD-10 in the [CLI review](../reviews/cli-review-2026-11/README.md#owner-decisions-needed) may pull this item forward into Phase 27 for timer operations and metrics.
 
 #### Group D (Parallel Track) — Structural Hygiene
 - [ ] **File Length Decomposition**: Split files above ~300 LOC: `DataTableViewer.tsx` (758), `ActiveTimerBanner.tsx` (376), `useTauriWindow.ts` (315), `MediumProjectSelector.tsx` (303), `sandboxEmulatorStore.ts` (344), and Rust `error/cli_error.rs` (404), `resolver/entity_resolver.rs` (382). Done for the CLI handlers: `task_handler`, `flow_handler` and `log_handler` are directory modules with files of at most ~210 lines, and `report_handler.rs` dropped to 142 lines after Phase 20 moved report figures into the Engine; `task_handler::handle` (~77 lines) still exceeds the thin-dispatcher guideline.
 - [ ] **Production unwrap Removal**: Replace the six `.unwrap()` calls in production Rust code (`app/builder.rs`, `engine/metrics/computed.rs`, `workflows/daemon.rs`, `cli/resolver/prompter.rs`, `cli/resolver/entity_resolver.rs`) with typed error handling.
+- [ ] **CLI Structural Hygiene** ([CLIX-48](../reviews/cli-review-2026-11/README.md#phase-34---engine-parity-cli-modularity-and-structural-hygiene-structural-after-the-fix-program), split per module): Dead code deleted, one home per constant, user-facing strings in `constants.rs`, `cli_error.rs`, `entity_resolver.rs`, `xml.rs`, `sheets.rs` and the HTML template split along responsibilities, no `unwrap()` or `MockPrompter` in production. Overlaps the two items above; whichever lands first closes the shared files. Closes [ARC-01](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-01-p2-thirteen-production-files-over-300-loc-eight-in-cli-scope), [ARC-02](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-02-p2-dead-code-in-exporters-formatters-constants-and-the-error-codes), [ARC-03](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-03-p2-duplicated-constants-and-inline-user-facing-literals), [ARC-05](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-05-p3-unwrap-in-production-resolver-and-prompter-code-a-test-double-lives-in-production).
+- [ ] **Shared Clamping Module** ([CLIX-49](../reviews/cli-review-2026-11/README.md#phase-34---engine-parity-cli-modularity-and-structural-hygiene-structural-after-the-fix-program)): `clamping.ts` moves to `src/common/engine/metrics/`. Closes [ARC-08](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-08-p2-browser-follow-ups-clampingts-location-and-getdefaultratecents-swallowing-errors) (location part).
 
 #### Group E (Parallel Track) — Webhook Dispatch Verification
-- [ ] **Single Webhook Dispatch Path**: Audit the TypeScript WebhookDispatcher, native Tauri/CLI sink paths and Browser queue adapters. Select one logical dispatch contract and document runtime-specific adapters in ENGINEERING.md; Phase 33 must build on this decision rather than introduce a second dispatcher.
+- [ ] **Single Webhook Dispatch Path**: Audit the TypeScript WebhookDispatcher, native Tauri/CLI sink paths and Browser queue adapters. Select one logical dispatch contract and document runtime-specific adapters in ENGINEERING.md; Phase 39 must build on this decision rather than introduce a second dispatcher.
 
 ---
 
-### Phase 29 — Native CLI → Desktop Reactive State Propagation 🚧 (Planned)
+### Phase 35 — Native CLI → Desktop Reactive State Propagation 🚧 (Planned)
 
 **Goal:** Changes made by an external oxy CLI process become visible immediately in every relevant Tauri window, without polling and without coupling the CLI to Tauri GUI APIs.
 
@@ -550,15 +801,15 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Process Integration Tests**: Execute the compiled oxy process against a temporary database while the Tauri-side receiver is active; verify that a committed change reaches the GUI and a failed operation does not.
 - [ ] **Multi-Window E2E**: Verify synchronization in the main window and Compact Timer, including timer start/stop/switch and project/task changes.
 - [ ] **Architecture Tests**: Enforce that CLI, Engine and Persistence remain free of Tauri GUI dependencies and that notifications are emitted only from the appropriate post-commit boundary.
-- [ ] **Error & Logging Coverage**: Use the existing typed error contracts and currently supported diagnostics; distinguish expected operational failures from infrastructure failures. Phase 32 later standardizes native Rust handling and logging without blocking this phase. Never silently discard an error.
+- [ ] **Error & Logging Coverage**: Use the existing typed error contracts and currently supported diagnostics; distinguish expected operational failures from infrastructure failures. Phase 38 later standardizes native Rust handling and logging without blocking this phase. Never silently discard an error.
 
 **Phase Gate:** An external CLI operation updates the running Desktop UI reactively; CLI behavior remains correct when Desktop is closed or IPC is unavailable; all relevant tests and architecture rules pass.
 
 ---
 
-### Phase 30 — Native MCP for CLI & Desktop + Generated Contracts 🚧 (Planned)
+### Phase 36 — Native MCP for CLI & Desktop + Generated Contracts 🚧 (Planned)
 
-**Depends on:** Phase 29.  
+**Depends on:** Phase 35.  
 **Goal:** Expose the native TimeLog capabilities to AI agents through one consistent MCP interface, usable with the standalone CLI and the Desktop runtime, without duplicating business logic.
 
 #### Group A — Canonical MCP Contracts & TypeScript Bindings
@@ -577,7 +828,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Observability**: Log tool invocation outcomes and unexpected failures with operation/source context; never swallow errors or return raw internal error details as the public contract.
 
 #### Group C — Desktop Compatibility, Safety & Verification
-- [ ] **Desktop State Propagation**: When an MCP operation changes native state while Desktop is running, reuse the Phase 29 notification path so all relevant windows refresh through the normal React data lifecycle.
+- [ ] **Desktop State Propagation**: When an MCP operation changes native state while Desktop is running, reuse the Phase 35 notification path so all relevant windows refresh through the normal React data lifecycle.
 - [ ] **Local Access & Safeguards**: Define local process access, tool permissions and confirmation requirements for destructive or historical-data operations. Reuse existing Time Safeguards; do not let MCP bypass them.
 - [ ] **Protocol Tests**: Cover MCP initialization, stdio request/response flow, tool discovery/calls, resources, malformed arguments, unsupported methods and graceful shutdown.
 - [ ] **Behavioral Parity**: Verify that equivalent CLI, MCP and Desktop operations produce the same persisted state and domain outcomes.
@@ -588,16 +839,16 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 31 — PWA WebMCP Adapter & Browser Agent Integration 🚧 (Planned)
+### Phase 37 — PWA WebMCP Adapter & Browser Agent Integration 🚧 (Planned)
 
-**Depends on:** Phase 30 contract definitions.  
+**Depends on:** Phase 36 contract definitions.  
 **Goal:** Expose the supported TimeLog capabilities to browser-context AI agents from PWA, using TypeScript and the Browser runtime. No Rust runtime or native stdio server is required in PWA.
 
 #### Group A — Browser Adapter & Runtime Integration
 - [ ] **PWA MCP Adapter**: Implement a TypeScript adapter in the Browser runtime that exposes the canonical MCP tool semantics through the supported WebMCP browser API (e.g. navigator.modelContext, subject to browser/API availability).
 - [ ] **Capability Detection**: Feature-detect WebMCP support and register tools only when the browser provides the required capability. Unsupported browsers must retain normal PWA behavior without startup failures.
 - [ ] **Browser Application Path**: Route tool calls through the existing Browser Engine / Persistence implementations and their established application operations. Do not import Rust/Tauri modules or access LocalStorage directly from the adapter when an existing router/plugin API owns the operation.
-- [ ] **Generated Contract Reuse**: Consume the generated src/bindings/ types and generated JSON Schemas from Phase 30. Avoid independently maintained tool definitions, payload types or error codes.
+- [ ] **Generated Contract Reuse**: Consume the generated src/bindings/ types and generated JSON Schemas from Phase 36. Avoid independently maintained tool definitions, payload types or error codes.
 
 #### Group B — Tool Parity, Permissions & State Consistency
 - [ ] **Supported Tool Parity**: Expose the same semantic operations as native MCP wherever the Browser runtime supports them. Document intentional capability differences rather than silently changing tool behavior.
@@ -614,12 +865,11 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 **Phase Gate:** PWA exposes the agreed tool contract through WebMCP when supported, uses only Browser runtime operations, degrades safely when unsupported, and passes shared contract-conformance and browser E2E tests.
 
-
 ---
 
-### Phase 32 — Centralized Rust Error Handling & Diagnostic Logging 🚧 (Planned)
+### Phase 38 — Centralized Rust Error Handling & Diagnostic Logging 🚧 (Planned)
 
-**Depends on:** Existing typed error contracts and CLI error envelopes from Phase 10. Phases 29–31 may proceed using the current mechanisms; this phase standardizes and consolidates them.  
+**Depends on:** Existing typed error contracts and CLI error envelopes from Phase 10. Phases 35–37 may proceed using the current mechanisms; this phase standardizes and consolidates them.  
 **Runtime scope:** Native Rust, Tauri Desktop and standalone oxy CLI. Browser/PWA keeps browser-native diagnostics and shared error semantics; it must not depend on Rust file logging.
 
 **Goal:** Establish consistent native error handling and diagnostic logging so failures are classified, handled, reported and never silently discarded.
@@ -644,7 +894,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Ad Hoc Diagnostic Export**: Allow users to export a diagnostic bundle with relevant logs and safe environment metadata, excluding secrets and unnecessary personal/domain data.
 
 #### Group C — Verification & Migration
-- [ ] **Legacy Secret Exposure Audit**: Identify existing secret-bearing settings and queued headers so redaction covers historical diagnostic paths as well as new logs. Secret storage migration itself is coordinated with Phase 34.
+- [ ] **Legacy Secret Exposure Audit**: Identify existing secret-bearing settings and queued headers so redaction covers historical diagnostic paths as well as new logs. Secret storage migration itself is coordinated with Phase 40.
 - [ ] **Error Path Tests**: Verify classification, propagation, boundary mapping, user-facing handling and logging for expected, unexpected, infrastructure and critical failures.
 - [ ] **Logging Concurrency Tests**: Verify simultaneous Desktop/CLI operation, rotation, process restart, disk-full and unavailable-log-directory behavior.
 - [ ] **Static Enforcement**: Add only targeted Clippy/configuration and architecture checks for ignored must-use results, production unwraps and unapproved generic error representations.
@@ -654,9 +904,9 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 33 — Transactional Event Journal & Sink Reliability 🚧 (Planned)
+### Phase 39 — Transactional Event Journal & Sink Reliability 🚧 (Planned)
 
-**Depends on:** Phase 32 error/logging policies and Phase 28 Group E (single logical webhook dispatch path).  
+**Depends on:** Phase 38 error/logging policies and Phase 34 Group E (single logical webhook dispatch path).  
 **Runtime scope:** SQLite-backed Native/Tauri and standalone CLI are authoritative for the native event journal. Browser/PWA must retain its own runtime boundary and must not pretend LocalStorage is transactionally equivalent to the native SQLite outbox.
 
 **Goal:** Replace best-effort audit emission with a durable, replayable domain-event foundation. Domain mutations and their event records must commit atomically; CSV/JSONL and remote delivery are projections/adapters, not independent sources of truth.
@@ -664,7 +914,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 #### Group A — Existing Persistence & Sink Audit
 - [ ] **Persistence Transaction Audit**: Map every domain write path and identify the actual SQLite connection/transaction boundaries. Verify whether repositories currently share a transaction; introduce an explicit transaction/unit-of-work boundary where required.
 - [ ] **CSV Gap Analysis**: Record the current CSV limitations: best-effort emission, ignored sink errors, incomplete event coverage and absence of replayable payloads. Treat existing per-project CSV files as legacy projections, not as a durable event source.
-- [ ] **Webhook Path Consolidation**: Complete the Phase 28 dispatch-path decision across TypeScript, Tauri, Browser and CLI. Retain runtime-specific transport adapters only where required; do not maintain competing delivery queues or policies for the same runtime.
+- [ ] **Webhook Path Consolidation**: Complete the Phase 34 dispatch-path decision across TypeScript, Tauri, Browser and CLI. Retain runtime-specific transport adapters only where required; do not maintain competing delivery queues or policies for the same runtime.
 - [ ] **Configuration & Status Alignment**: Align sink configuration, enablement, delivery status and diagnostics across GUI, CLI, Tauri and Browser without bypassing their runtime boundaries.
 - [ ] **Failure Semantics**: A sink outage must not roll back an already committed domain mutation, but it must not erase the durable event or its pending delivery state.
 
@@ -682,7 +932,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 #### Group C — Dispatch, Projections & Recovery
 - [ ] **Transactional Dispatch State**: Track per-sink delivery state separately from immutable event content, including pending, delivered, retryable failure and dead-letter states. Ensure a crash cannot lose a committed event or falsely mark it delivered.
-- [ ] **Single Dispatcher Contract**: Dispatch committed events through the logical path selected in Phase 28, with adapters for supported runtimes. Define ownership, concurrency control and restart recovery.
+- [ ] **Single Dispatcher Contract**: Dispatch committed events through the logical path selected in Phase 34, with adapters for supported runtimes. Define ownership, concurrency control and restart recovery.
 - [ ] **CSV Projection**: Serialize the canonical envelope and replayable payload to CSV while preserving compatibility/migration behavior for existing timelog_<project_id>.csv files. Decide and document whether new exports remain per-project projections or include a global journal export.
 - [ ] **Idempotency & Retry**: Use stable event_id values as idempotency keys; retry delivery safely and document at-least-once delivery semantics and receiver requirements.
 - [ ] **Audit Replay**: Provide a read-only operation-history view from validated journal records, distinct from state reconstruction.
@@ -701,21 +951,21 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 34 — Sink Expansion & Secure Remote Delivery 🚧 (Planned)
+### Phase 40 — Sink Expansion & Secure Remote Delivery 🚧 (Planned)
 
-**Depends on:** Phase 33 canonical event envelope, journal and dispatch contract.  
+**Depends on:** Phase 39 canonical event envelope, journal and dispatch contract.  
 **Runtime scope:** Shared event and delivery semantics across Native/Tauri, CLI and Browser; native HTTP transport for Desktop/CLI and browser fetch transport for PWA. Browser proxy support is out of scope because it is controlled by the browser environment.
 
 **Goal:** Extend the established sink system with JSONL and secure remote delivery without creating a second webhook dispatcher or duplicating retry/queue semantics.
 
 #### Group A — JSONL Projection
-- [ ] **JSONL Serialization**: Implement JSON Lines as a projection of the Phase 33 canonical event envelope.
+- [ ] **JSONL Serialization**: Implement JSON Lines as a projection of the Phase 39 canonical event envelope.
 - [ ] **Semantic Parity**: Ensure CSV and JSONL represent the same canonical events and preserve equivalent identity, schema, ordering and replay semantics.
 - [ ] **Integrity Verification**: Include per-device sequence and hash metadata and verify each stream independently.
 - [ ] **Import & Export**: Support controlled import/export with schema validation, integrity verification and explicit duplicate/conflict handling.
 
 #### Group B — Unified Remote Delivery
-- [ ] **Webhook Evolution**: Extend the existing webhook integration through the Phase 28/33 logical dispatcher contract. Do not add an independent Remote API queue, retry engine or delivery-status model.
+- [ ] **Webhook Evolution**: Extend the existing webhook integration through the Phase 34/39 logical dispatcher contract. Do not add an independent Remote API queue, retry engine or delivery-status model.
 - [ ] **Transport Adapters**: Implement a native HTTP(S) adapter for Tauri/CLI and a Browser fetch adapter for PWA. Keep shared request semantics, event identity and error classification; document Browser CORS and capability restrictions.
 - [ ] **JWT Authentication**: Support manually configured bearer credentials without embedding secrets in event payloads or ordinary queue headers.
 - [ ] **Secure Credential Storage**: Define a platform-specific credential provider. Use OS-backed secure storage where available; do not claim Browser LocalStorage is secure credential storage.
@@ -738,7 +988,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 35 — Google Drive Backup Provider 🚧 (Planned)
+### Phase 41 — Google Drive Backup Provider 🚧 (Planned)
 
 **Depends on:** Existing Phase 10 oxy db backup / oxy db restore and SQLite Online Backup API. This phase does not depend on event sourcing or multi-device synchronization.  
 **Runtime scope:** Native/Tauri and standalone CLI. Browser/PWA cloud backup behavior is explicitly out of scope unless separately designed and approved.
@@ -748,7 +998,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 #### Group A — Provider Discovery & Authentication
 - [ ] **OAuth Architecture Discovery**: Decide OAuth application ownership, consent-screen/verification implications, supported account types and distribution model for this MPL-2.0 open-source application.
 - [ ] **Least-Privilege Scope Selection**: Compare drive.file and app-data options against required user-visible folder selection, backup discovery and restore workflows. Select the minimum scope that satisfies product requirements; do not assume full Drive access.
-- [ ] **Credential Lifecycle**: Define secure token storage, refresh, revocation, logout and re-authentication behavior using the platform credential provider established in Phase 34 where available.
+- [ ] **Credential Lifecycle**: Define secure token storage, refresh, revocation, logout and re-authentication behavior using the platform credential provider established in Phase 40 where available.
 - [ ] **Provider Boundary**: Keep Google Drive API types and behavior behind a provider interface so future providers do not leak into backup/domain logic.
 
 #### Group B — Backup & Restore Integration
@@ -769,9 +1019,9 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 36 — Multi-Device Data Synchronization 🚧 (Planned)
+### Phase 42 — Multi-Device Data Synchronization 🚧 (Planned)
 
-**Depends on:** Phase 33 versioned per-device event streams and Phase 35 Google Drive provider.  
+**Depends on:** Phase 39 versioned per-device event streams and Phase 41 Google Drive provider.  
 **Runtime scope:** Native/Tauri and standalone CLI devices. Browser/PWA participation requires a separately verified persistence and credential capability contract; it must not be implied by native support.
 
 **Goal:** Synchronize independent local databases through validated event streams and checkpoints, without concurrent access to a shared cloud-hosted SQLite database.
@@ -804,9 +1054,9 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 37 — Unified Data Integrity & Recovery Manager 🚧 (Planned)
+### Phase 43 — Unified Data Integrity & Recovery Manager 🚧 (Planned)
 
-**Depends on:** Phase 33 journal validator and recovery primitives, Phase 35 verified backup/restore provider, and Phase 36 synchronization metadata.  
+**Depends on:** Phase 39 journal validator and recovery primitives, Phase 41 verified backup/restore provider, and Phase 42 synchronization metadata.  
 **Runtime scope:** Native/Tauri and standalone CLI recovery orchestration. Browser/PWA exposes only capabilities supported by its own persistence adapter and must not claim native SQLite recovery.
 
 **Goal:** Orchestrate existing specialized validators and recovery procedures into one consistent integrity, diagnosis and controlled-repair workflow. This phase coordinates existing capabilities; it does not reimplement their validators.
@@ -824,9 +1074,9 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 #### Group B — Specialized Recovery Coordination
 - [ ] **SQLite Recovery**: Reuse the existing oxy db doctor, backup/restore and SQLite integrity/schema validation capabilities; add only missing checks.
 - [ ] **Cloud Artifact Recovery**: Reuse the Google Drive provider to locate versions, verify checksums and retrieve known-good artifacts.
-- [ ] **Event Journal Recovery**: Reuse Phase 33 per-device stream validators, checkpoints and deterministic replay; report unrecoverable gaps instead of fabricating history.
-- [ ] **Synchronization Recovery**: Reconcile interrupted sessions, stale checkpoints and divergent histories using Phase 36 protocol rules.
-- [ ] **Sink Recovery**: Rebuild projections and reconcile pending/delivered/dead-letter state from the canonical journal and dispatcher; do not duplicate Phase 33/34 validators.
+- [ ] **Event Journal Recovery**: Reuse Phase 39 per-device stream validators, checkpoints and deterministic replay; report unrecoverable gaps instead of fabricating history.
+- [ ] **Synchronization Recovery**: Reconcile interrupted sessions, stale checkpoints and divergent histories using Phase 42 protocol rules.
+- [ ] **Sink Recovery**: Rebuild projections and reconcile pending/delivered/dead-letter state from the canonical journal and dispatcher; do not duplicate Phase 39/40 validators.
 - [ ] **Recovery Boundaries**: Clearly distinguish recoverable delivery failure, projection corruption, event-history corruption, database corruption and unresolved domain conflict.
 
 #### Group C — Reporting & Verification
@@ -840,125 +1090,3 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 **Phase Gate:** A single recovery workflow can diagnose and coordinate specialized validators and repair procedures across SQLite, Google Drive, event history, synchronization and sinks; every repair is auditable, verified and preserves a known-good recovery point.
 
 ---
-
-### UI/UX Flow Program — Browser / PWA Runtime (Phases 38–41)
-
-**Goal:** Working with the app feels like one continuous movement ("Brazilian Zouk Flow"): the numbers are right, the keyboard never ends in a dead end or stops a timer by accident, nothing jumps, and every task takes as few interactions as possible.
-
-**Source:** [UI/UX flow audit, 2026-11](../reviews/ui-ux-flow-audit-2026-11/README.md). Each item names its work package (`FLOW-xx`, sizes and layers in the audit backlog) and links the findings it closes; the findings hold the repro steps, measurements, screenshots and the regression test to add.
-
-**Order:** Phase 38 first, because it fixes wrong numbers and blocked users. Phases 39 (Reports) and 40 (Tasks) touch different features and can run in parallel after Phase 38. The parallel tracks in Phase 41 are small, independent changes that can be picked up at any time. The program changes React, CSS and the browser engine, so it can run alongside the v1.16 CLI program; the exceptions are FLOW-01 and FLOW-30, which change both engines and their parity fixtures.
-
-**Owner decisions (2026-11-14):** The four open questions are answered in [Owner decisions](../reviews/ui-ux-flow-audit-2026-11/README.md#owner-decisions); the affected items below state the decision they follow (*D1*–*D4*).
-
-**Scope:** The browser runtime in the Full and Medium layouts. Tabs that the browser does not show (`db`, `cli`), the Compact layout, the tray and the Tauri windows were not audited; the desktop receives the shared React fixes without a separate audit.
-
-**Rules for every item:** The regression test named in the finding ships with the fix; visual changes attach before and after screenshots to the PR; L-sized packages are split before dispatch.
-
----
-
-### Phase 38 — Correct Data & Unblocked Input 🚧 (In Progress)
-
-**Goal:** Reports show correct numbers for every period and project scope, and keyboard use never stops a timer or lands on a hidden view.
-
-#### Group A — Test Baseline
-
-- [ ] **Stale Layout Spec** ([FLOW-29](../reviews/ui-ux-flow-audit-2026-11/README.md#follow-ups-found-during-flow-05-review)): `main-layout.spec.ts` expects the `db` tab, which the browser runtime hides. Fixed first so that the e2e suite is a reliable gate for the rest of the program.
-
-#### Group B — Report Data Correctness
-
-- [x] **Report Project Scope** ([FLOW-05](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users) part 1): The report keeps its own multi-project scope, where empty means all projects. Filter chips and donut slices toggle one or many projects, "All" resets the scope, and the Engine filters every card, chart and log list by it. Closes [B-04](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-04-p1-interaction-cost--consistency-project-scope-is-single-select-and-all-does-nothing-known-defect-observable-behaviour) inside the Reports view.
-- [ ] **Sidebar Multi-Select in Reports** ([FLOW-05](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users) part 2): While Reports is active, the projects sidebar toggles the report scope (one or many projects, a selected indicator that does not rely on colour, a one-click reset to all). In Tasks the sidebar keeps selecting the working project. [B-04](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-04-p1-interaction-cost--consistency-project-scope-is-single-select-and-all-does-nothing-known-defect-observable-behaviour).
-- [ ] **Periods in the User's Timezone** ([FLOW-01](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users)): Report periods come from the Engine's timezone-aware period resolution (Phase 19, Group A) instead of UTC arithmetic in `periodRanges.ts`; the "All" period gets a real day count for the daily average; the `last30Days` day count is corrected. [B-13](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-13-p0-data-correctness-period-boundaries-are-computed-in-utc-a-log-made-just-after-local-midnight-is-reported-under-yesterday), [B-01](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-01-p1-data-correctness-daily-average-equals-period-total-for-the-all-period).
-- [ ] **Empty Scope in Billing** ([FLOW-31](../reviews/ui-ux-flow-audit-2026-11/README.md#follow-ups-found-during-flow-05-review)): The `ReportBillingCard` fetch path treats an empty project list the same way as the statistics path instead of reading it as "all projects".
-- [ ] **One Project Rule in Both Engines** ([FLOW-30](../reviews/ui-ux-flow-audit-2026-11/README.md#follow-ups-found-during-flow-05-review)): Rust range metrics filter on `log.project_id`, the browser engine on `task.projectId ?? log.projectId`. One rule, documented in `ENGINEERING.md` and covered by a parity fixture.
-
-#### Group C (Parallel Track) — Keyboard & Focus Safety
-
-- [ ] **No Accidental Timer Toggle** ([FLOW-02](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users)): Only Ctrl+Space toggles the timer; bare Space no longer does (D3). Inline editors and confirm dialogs return focus to their trigger. [A-21](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-21--p1-data-affecting--interaction-cost--a11y--rename-and-subtask-add-drops-focus-to-body-and-the-global-space-shortcut-then-stops-the-running-timer), [A-32](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-32--p2--a11y--interaction-cost--focus-return-is-inconsistent-billing-and-logs-dialogs-return-focus-to-the-trigger-the-delete-task-confirm-does-not), [C-11](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-11--p2--a11y--reset-dialog-focus-is-not-returned-to-the-trigger-after-escape--prior-expbout). *Needs D3.*
-- [ ] **Alt+Digit Follows the Visible Tabs** ([FLOW-04](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users)): Shortcuts map to the tab list the runtime actually shows. [C-01](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-01--p1--interaction--dead-end--alt3-lands-on-a-hidden-tab-blank-content-no-tab-selected--prior-expa2out-a-alt3-hidden-db).
-- [ ] **Keyboard-Operable Sidebar** ([FLOW-03](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-1--wrong-data-and-blocked-users)): Project rows are focusable and selectable, Tab no longer stops on invisible controls, the action cluster stops taking row width, the edit button has a name. [A-19](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-19--p0-a11y-blocks-keyboard-only--a11y--interaction-cost--projects-cannot-be-selected-with-the-keyboard-sidebar-tab-order-is-28-invisible-stops), [A-01](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-01--p1--visual--data-correctness--sidebar-project-rows-show-a-1-character-description-line--c-cr), [A-34](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-34--p2--sense-of-solution--project-row-shows-hover-only-editarchivereorder-controls-and-double-click-to-rename-and-a-separate-edit-dialog-three-ways-to-edit-one-name-none-discoverable-without-hover), [B-16](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-16-p1-a11y--interaction-cost-keyboard-40-tab-stops-from-the-tab-bar-before-the-reports-first-button-donut-slices-are-not-keyboard-reachable). Runs after the sidebar multi-select, which changes the same rows.
-
-**Phase Gate:** For one seeded dataset, every report period and scope (one project, several, all; with and without a tag filter) gives the same totals in the cards, charts, billing and log list, in both engines; a keyboard-only run of the Tasks flow never stops the timer by accident.
-
----
-
-### Phase 39 — Reports Flow 🚧 (Planned)
-
-**Depends on:** Phase 38 (Group B).
-**Goal:** One scope bar above the numbers it changes, readable charts and logs, and exports and printouts that state what they contain.
-
-#### Group A — Scope & Readability
-
-- [ ] **One Sticky Scope Bar** ([FLOW-06](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Period, projects and tags sit in one bar above the numbers, and filtering no longer moves the clicked control. [B-02](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-02-p1-sense-of-solution--interaction-cost-controls-that-change-the-numbers-sit-below-the-numbers-they-change), [B-03](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-03-p1-interaction-cost-filter-block-is-a-4-row-wall-that-grows-with-data), [B-23](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-23-p1-motiontransition-the-period-button-you-just-clicked-moves-under-the-pointer-up-to-1250-px-because-the-filter-sits-below-variable-height-content), [B-14](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-14-p1-motiontransition-selecting-a-donut-slice-or-clearing-the-filter-throws-the-user-to-another-place-in-the-page).
-- [ ] **Readable Cards & Charts** ([FLOW-09](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Stat card labels, legends and the donut title are not clipped; bars for wide periods are aggregated. [B-07](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-07-p1-visual-project-share-title-is-truncated-by-its-own-filter-badge), [B-08](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-08-p1-visual-chart-legends-are-clipped-at-the-card-edges-with-many-projects--long-names), [B-10](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-10-p1-i18n--visual-stat-card-titles-break-mid-word-and-truncate-de-multi-currency), [B-22](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-22-p2-visual--consistency-3-px-wide-daily-bars-with-a-hover-target-of-3-px).
-
-#### Group B — Log List & Billing
-
-- [ ] **Usable Log List** ([FLOW-07](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Usable height, a date per row or day groups, start–end and note, windowed rendering for long lists. [B-18](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-18-p1-interaction-cost--visual-log-list-250-px-nested-scroller-holds-9000-px-of-rows-rows-have-no-date-text-is-10-12-px), [B-15](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-15-p1-performance--motion-every-period-or-project-click-blocks-the-main-thread-for-03-22-s-dev-build).
-- [ ] **One Billing View** ([FLOW-08](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): One representation grouped by project, readable at 390 px, no "UNKNOWN" currency card. [B-05](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-05-p1-responsiveness-billing-table-is-cut-off-at-390px-duration-and-amount-columns-are-not-visible), [B-11](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-11-p2-sense-of-solution-billing-appears-three-times-and-an-unknown-currency-card), [B-12](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-12-p1-sense-of-solution-billing-table-has-no-project-column-rows-ambiguous-in-multi-project-scope).
-- [ ] **Cheaper Log Correction** ([FLOW-12](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Correcting a log from the report takes fewer steps; the reason for the edit is prefilled with a default the user can change, so the audit trail stays complete (D2). [B-19](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-19-p1-interaction-cost-fix-a-wrong-log-found-in-the-report-costs-9-12-interactions-and-a-mandatory-free-text-reason). *Needs D2.*
-
-#### Group C (Parallel Track) — Export & Print
-
-- [ ] **Custom Range & Export Naming** ([FLOW-10](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): The custom range is prefilled and validated; the export dialog and the file name state the period and scope. [B-20](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-20-p1-interaction-cost--consistency-custom-range-starts-empty-and-equal-to-all-needs-two-typed-dates-a-reversed-range-silently-empties-the-report), [B-21](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-21-p2-consistency--i18n-export-dialog-shows-the-raw-period-id-and-no-scope).
-- [ ] **Accessible Export Dialog** ([FLOW-13](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): Focus trap and radio-group semantics. [B-17](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-17-p2-a11y-export-modal-focus-escapes-the-dialog-and-the-format-list-is-7-separate-tab-stops).
-- [ ] **Clean Print Document** ([FLOW-11](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-2--reports-flow)): No app chrome, card titles kept, resolved dates and scope printed. [B-24](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-24-p1-consistency--sense-of-solution-print-output-app-chrome-prints-card-titles-vanish-period-has-no-dates-or-project-irrelevant-cards-stay).
-
-**Phase Gate:** At 1440 px, changing the scope and reading the result needs no scrolling and the clicked control stays in place; exports and printouts show the period dates and the project scope.
-
----
-
-### Phase 40 — Tasks Flow 🚧 (Planned)
-
-**Depends on:** Phase 38 (Group C).
-**Goal:** A keyboard-first entry chain from project to running timer, on a layout that does not jump.
-
-#### Group A — Stable Geometry & Clean Rows
-
-- [ ] **Stable Geometry** ([FLOW-15](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): One banner height for idle, active and break; a symmetric Full ↔ Medium switch. [A-05](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-05--p1--motiontransition--startingstopping-the-timer-shifts-the-whole-project-sheet-by-9px), [A-22](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-22--p2--motiontransition--take-break-swaps-the-active-banner-for-a-taller-break-banner-the-whole-task-sheet-jumps-down-18px-and-back), [A-28](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-28--p1--motiontransition--layout-switch-full--medium-is-asymmetric-fullmedium-snaps-mediumfull-animates-the-frame-while-the-full-layout-is-already-rendered-inside-it).
-- [ ] **Task Row & Header Cleanup** ([FLOW-16](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): One status concept, no `Entity #id` line, badge spacing, no "SELECT PROJECT" eyebrow above a selected project, compact stats, long names wrap. [A-03](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-03--p1--sense-of-solution--timer-start-produces-a-second-parallel-status-chip-and-raw-entity-id-debug-line-on-every-task), [A-04](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-04--p2--visual--in-progress-badge-glyph-collides-with-its-label-n-progress), [A-07](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-07--p1--sense-of-solution--task-stats-and-project-header-duplicate-the-same-number-three-times), [A-08](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-08--p2--consistency--eyebrow-select-project-is-shown-above-an-already-selected-project), [A-11](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-11--p2--i18nvisual--long-task-name-truncated-with--at-45-chars-although-the-row-has-free-width), [A-09](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-09--p1--interaction-cost--task-actions-billing--logs-rename-delete-are-icon-only-appear-only-on-hover-12px-low-contrast).
-
-#### Group B — Keyboard-First Entry
-
-- [ ] **Entry Chain** ([FLOW-14](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): Focus moves from a new project to the task input; the subtask input takes focus and accepts batch entry; a new task scrolls into view; Medium selects the created project and closes its form on Esc. [A-20](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-20--p1--interaction-cost--after-add-project-via-enter-focus-stays-in-the-project-input-the-next-natural-step-task-name-needs-a-pointer-click), [A-14](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-14--p1--interaction-cost--subtask-creation--subtask-opens-an-inline-form-but-focus-is-not-moved-to-its-input-and-enter-keeps-the-form-open), [A-31](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-31--p1--interaction-cost--a-newly-added-task-is-appended-below-the-fold-and-the-list-is-not-scrolled-to-it), [A-30](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-30--p1--interaction-cost--consistency--medium-creating-a-project-does-not-select-it-full-does-and-gives-no-confirmation), [A-06](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-06--p1--interaction-cost--a11y--medium-layout-esc-does-not-close-the-new-project-form-and-the-open-form-covers-the-task-list-so-start-buttons-cannot-be-clicked).
-
-#### Group C — Responsive Pass
-
-- [ ] **Responsive Pass** ([FLOW-17](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow), split per view): 1024 px sidebar, long project names, phone-width Full layout, subtask rows at 390 px, touch target sizes, Settings tables at 390 px, Medium tiles. [A-24](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-24--p1--responsiveness--full-layout-at-1024x768-sidebar-is-squeezed-so-project-names-are-cut-to-12-characters-and-the-add-new-project-button-overflows-its-card), [A-25](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-25--p1--responsiveness--visual--long-project-name-is-hard-clipped-no-ellipsis-in-the-medium-sheet-header-and-collides-with-total-in-full-all-themeslocalessizes), [A-16](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-16--p1--responsiveness--interaction-cost--phone-390px-full-the-projects-list-fills-the-first-screen-tasks-are-reached-only-after-scrolling-past-7-projects-110px-each), [A-17](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-17--p1--responsiveness--a11y--phone-medium-subtask-row-action-glyphs--clock-overlap-the-todo-chip-sticky-banner-hides-the-running-timer-card), [A-26](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-26--p2--responsiveness--phone-390-full-stat-card-labels-clipped-total-duration-total-tasks-completed-tasks-and-the-footer-license-link-overlaps-the-last-visible-tag-chip), [A-27](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-27--p2--a11y--responsiveness--interactive-targets-below-24px-wcag-258-minimum-on-the-tasks-screen-including-on-touch), [B-06](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-06-p1-responsiveness--interaction-cost-full-layout-on-a-phone-the-report-is-buried-under-the-whole-projects-sidebar), [C-29](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-29--p1--visual--responsiveness--medium-settings-quick-language-tiles-truncated-to-one-letter-status-banner-overlaps-timer-card--shots-g-med-1440-settings-g-med-390-settings), [C-32](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-32--p1--responsiveness--390x844-holidays-table-hides-editdelete-off-screen-headings-and-footer-clipped--expiout-shot-390-dark-settings-default), [C-15](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-15--p2--responsiveness--390x844-language-tile-label-truncated--prior-m3json). Runs after Groups A and B; measured at the medium text size, and FLOW-24 repeats the checks at small and large.
-
-#### Group D — Decision-Dependent
-
-- [ ] **Starter Templates Worth the Click** ([FLOW-18](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): Readable first-run cards; each template creates its project with two or three starter tasks (D4). [A-02](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-02--p1--visual--starter-template-cards-on-first-run-description-text-overlaps-the-neighbour-card), [A-35](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-35--p2--sense-of-solution--quick-starter-templates--launch-your-workflow-with-one-click-creates-only-an-empty-project-cards-give-no-readable-title-or-description). *Needs D4.*
-- [ ] **Medium Layout Chrome** ([FLOW-19](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-3--tasks-flow)): Medium is the PWA phone layout (D1): it fills the window, and its chrome and tab bar are sized for a phone screen. [A-12](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-12--p1--responsiveness--medium-layout-at-1024px-renders-a-500px-column-docked-to-the-right-with-an-empty-500px-void-on-the-left), [A-13](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-13--p2--visual--medium-tab-bar-active-tab-pill-clipped-at-left-edge-labels-icon-only), [A-33](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-33--p2--sense-of-solution--responsiveness--medium-layout-leaves-42-of-the-window-for-tasks). *Needs D1.*
-
-**Phase Gate:** Creating a project, a task and a subtask and starting the timer works by keyboard alone without a layout jump; no text is clipped at 390, 1024 and 1440 px.
-
----
-
-### Phase 41 — Shell Truthfulness & Tab Currency 🚧 (Planned)
-
-**Goal:** The browser app promises only what it can do, tabs and Settings speak one language, and motion and scale follow the user's preferences.
-
-#### Group A (Parallel Track) — Truthful Copy
-
-- [ ] **Runtime-Aware Copy** ([FLOW-20](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): No Rust, SQLite, tray or daemon wording, no dead footer link, no false shortcut tiles or Manual title in the browser; the status banner and the "Registered today" value are correct. [C-02](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-02--p1--stale-content--sense-of-solution--manual-tab-shortcut-card-describes-desktop-tray-behaviour-in-the-browser--prior-1440-light-manual-expanded), [C-03](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-03--p2--stale-content--manual-tab-title-and-subtitle-promise-content-that-is-not-there-section-numbering-starts-at-ii--prior-1440-light-manual-expanded), [C-05](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-05--p1--stale-content--sense-of-solution--browser-runtime-still-advertises-native-stack--prior-all-shots), [C-18](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-18--p1--stale-content--manual-tab-hides-the-compilation-guide-in-the-browser-so-the-titledescription-describe-a-page-that-does-not-exist-here--code-manualtabtsx), [C-19](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-19--p1--stale-content--shortcut-card-is-not-capability-gated-except-cli-row--code-keyboardshortcutscardtsx29-52), [C-25](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-25--p1--sense-of-solution--dead-end--footer-database-management-link-does-nothing-in-the-browser--expeout-shots-e-db-link), [B-09](../reviews/ui-ux-flow-audit-2026-11/audit-b-reports.md#b-09-p2-data-correctness-registered-today-in-the-timer-banner-is-not-todays-time).
-- [ ] **One Version Number** ([FLOW-21](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): One version in the header; Credits content and versions in one place. [C-04](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-04--p1--consistency--stale-content--three-different-version-numbers--prior-all-shots-header-1440-light-settings-expanded), [C-22](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-22--p2--sense-of-solution--credits-tab-content-is-personal-copy-partly-inaccurate-for-the-browser--code-creditstabtsx10-screenshot-1440-light-credits-expanded).
-- [ ] **Documentation Drift** ([FLOW-28](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): User guide themes and paths, CHANGELOG release headings, the locale count in the manifesto. [C-21](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-21--p2--stale-content--user-guide-and-readme-disagree-with-the-real-ui--docs-vs-ui).
-
-#### Group B (Parallel Track) — Header, Settings & Preferences
-
-- [ ] **Locale-Independent Header** ([FLOW-23](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): Header geometry does not depend on the locale; language has one home; layout and text size are named distinctly; each tab label equals its view heading. [C-13](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-13--p1--motion--layout-shift--switching-language-moves-header-and-tab-bar--prior-expdout), [C-14](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-14--p2--sense-of-solution--language-can-be-set-in-three-places--prior-1440-light-settings-expanded), [C-24](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-24--p2--a11y--i18n--consistency--header-controls-naming-and-accessible-names--expeout-header-buttons), [C-27](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-27--p2--i18n--leftovers-and-naming-drift-across-locales-expfout).
-- [ ] **Settings Polish** ([FLOW-27](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): Headings without jargon, card order and default expansion, the hours-limit field, translation key validation, the import error message, no toast for changes that are already visible. [C-06](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-06--p2--consistency--visual--duplicate-and-developer-jargon-headings-in-settings--prior-1440-light-settings-expanded), [C-07](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-07--p2--sense-of-solution--order-of-settings-cards-reset-separated-from-backup--prior-1440-light-settings-expanded), [C-08](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-08--p1--interaction--validation--auto-stop-hours-field-max-not-enforced-clearing-snaps-to-1--prior-expa2out), [C-09](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-09--p1--interaction--validation-feedback--invalid-backup-file-generic-message-stays-on-screen--prior-expcout), [C-10](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-10--p2--consistency--custom-translation-editor-accepts-unknown-keys-silently--prior-expcout), [C-30](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-30--p2--interaction-cost--consistency--needless-confirmation-toast-for-an-instant-visible-change--expg2out), [C-33](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-33--p2--consistency--default-expansion-state-of-settings-cards-is-arbitrary--expiout).
-- [ ] **Reduced Motion** ([FLOW-25](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): `prefers-reduced-motion` is honoured. [A-29](../reviews/ui-ux-flow-audit-2026-11/audit-a-tasks-and-shell.md#a-29--p2--a11y--motion--prefers-reduced-motion-reduce-is-not-honoured-by-the-pulseping-indicators), [C-12](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-12--p2--a11y--motion--prefers-reduced-motion-is-not-honoured-by-the-active-tab-icon--prior-expdout).
-
-#### Group C — Reach & Install
-
-- [ ] **Everything Reachable in Medium** ([FLOW-22](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): Backup is a regular tab in the Medium layout; Manual, Credits and other secondary destinations are icon-only buttons with an accessible name and a tooltip on hover, keyboard focus and long press (D1). [C-28](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-28--p1--sense-of-solution--dead-end--medium-layout-cannot-reach-backup-manual-credits-versions-or-reset--expg3out-shots-g-med-), [C-23](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-23--p2--consistency--medium-layout-exposes-only-tasks--reports--settings--code-navigationts). *Needs D1.*
-- [ ] **Discoverable PWA Install** ([FLOW-26](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency)): The app offers installation where the browser supports it. [C-20](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-20--p1--stale-content--pwa-nothing-tells-the-user-how-to-install-it--code-appbrowsertsx16-platformcapabilitiescontextts12), [C-26](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-26--p1--stale-content--pwa-install-not-discoverable-supports-c-20).
-
-#### Group D — Scale
-
-- [ ] **Text and Icon Size Scales the Whole UI** ([FLOW-24](../reviews/ui-ux-flow-audit-2026-11/README.md#wave-4--shell-truthfulness-and-tab-currency), token audit, split before dispatch): Not only the tab bar. [C-31](../reviews/ui-ux-flow-audit-2026-11/audit-c-settings-and-tab-currency.md#c-31--p1--consistency--sense-of-solution--text-and-icon-size-control-only-scales-the-tab-bar-not-the-settings-content--expjout-shots-h-text-large-settings). Repeats the FLOW-17 checks at the small and large sizes.
-
-**Phase Gate:** In the browser runtime no text mentions Rust, SQLite, the tray or the daemon; every tab label equals its view heading; Backup, Manual and Credits are reachable from every layout; reduced motion turns transitions off; the large text size scales every view.
