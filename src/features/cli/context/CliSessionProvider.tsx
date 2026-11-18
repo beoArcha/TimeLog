@@ -126,7 +126,7 @@ export const CliSessionProvider: React.FC<CliSessionProviderProps> = ({
       onStopTimer: contextOverrides?.onStopTimer ?? ambientData?.handleStopTimer ?? (() => {}),
       isSandbox: isSandboxMode,
       onToggleSandbox: setSandboxMode,
-      onSwitchTask: contextOverrides?.onSwitchTask,
+      onSwitchTask: contextOverrides?.onSwitchTask ?? ambientData?.handleSwitchTimer,
       onRefreshData: ambientData?.refreshData ? async () => { await ambientData.refreshData(); } : undefined,
     };
 

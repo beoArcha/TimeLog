@@ -212,10 +212,11 @@ describe('Given an active timer running on a task', () => {
   });
 
   describe('When atomic switch command is executed for another task', () => {
-    it('Then it should stop the previous timer and start tracking the new task', async () => {
+    it('Then it should switch through the atomic engine handler instead of chaining stop and start', async () => {
       // Given
       const stopTimerMock = vi.fn();
       const startTimerMock = vi.fn();
+      const switchTimerMock = vi.fn();
       const proj = aProject({ id: 'p1', name: 'Project Alpha' });
       const task1 = aTask({ id: 't1', projectId: 'p1', name: 'First Task' });
       const task2 = aTask({ id: 't2', projectId: 'p1', name: 'Second Task' });
@@ -227,6 +228,7 @@ describe('Given an active timer running on a task', () => {
             tasks: [task1, task2],
             handleStopTimer: stopTimerMock,
             handleStartTimer: startTimerMock,
+            handleSwitchTimer: switchTimerMock,
           }}
         >
           <CliSessionProvider initialDrawerOpen={true}>
@@ -244,9 +246,10 @@ describe('Given an active timer running on a task', () => {
 
       // Then
       await waitFor(() => {
-        expect(stopTimerMock).toHaveBeenCalled();
-        expect(startTimerMock).toHaveBeenCalledWith('t2');
+        expect(switchTimerMock).toHaveBeenCalledExactlyOnceWith('t2');
       });
+      expect(stopTimerMock).not.toHaveBeenCalled();
+      expect(startTimerMock).not.toHaveBeenCalled();
     });
   });
 });

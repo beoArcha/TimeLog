@@ -40,12 +40,16 @@ export const useTimerManager = ({
     }
   };
 
-  const handleStartTimer = async (taskId: string) => {
-    await actionRunner.runAction('Failed to start timer', async () => {
+  const runTimerMutation = async (
+    errorMessage: string,
+    mutate: () => Promise<void>
+  ) => {
+    await actionRunner.runAction(errorMessage, async () => {
       const prevLogs = repositoryState.logs;
       try {
-        await EngineRouter.getInstance().timer.startTimer(taskId);
+        await mutate();
       } finally {
+        // Reload even when the engine call fails so the UI never keeps a stale snapshot.
         const nextState = await PersistenceRouter.getInstance().core.load();
 
         if (nextState) {
@@ -59,24 +63,16 @@ export const useTimerManager = ({
     });
   };
 
-  const handleStopTimer = async (specificProjectId?: string) => {
-    await actionRunner.runAction('Failed to stop timer', async () => {
-      const prevLogs = repositoryState.logs;
-      try {
-        await EngineRouter.getInstance().timer.stopTimer(specificProjectId);
-      } finally {
-        const nextState = await PersistenceRouter.getInstance().core.load();
+  const handleStartTimer = (taskId: string) =>
+    runTimerMutation('Failed to start timer', () => EngineRouter.getInstance().timer.startTimer(taskId));
 
-        if (nextState) {
-          repositoryState.setLogsState(nextState.logs);
-          repositoryState.setActiveLogState(nextState.activeLog);
-          repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
-          await refreshComputedMetrics();
-          notifyActiveLogChanges(prevLogs, nextState.logs);
-        }
-      }
-    });
-  };
+  const handleStopTimer = (specificProjectId?: string) =>
+    runTimerMutation('Failed to stop timer', () => EngineRouter.getInstance().timer.stopTimer(specificProjectId));
+
+  // A single engine call keeps stop and start in one transaction; chaining the
+  // two handlers lets the first handler's state reload overwrite the second's.
+  const handleSwitchTimer = (taskId: string) =>
+    runTimerMutation('Failed to switch timer', () => EngineRouter.getInstance().timer.switchTimer(taskId));
 
   const handleEditTimeLog = async (
     id: string,
@@ -223,6 +219,7 @@ export const useTimerManager = ({
     setActiveLog,
     handleStartTimer,
     handleStopTimer,
+    handleSwitchTimer,
     handleEditTimeLog,
     handleDeleteTimeLog,
     handleInsertTimeLog,

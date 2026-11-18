@@ -220,7 +220,7 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
     }
 
     case 'switch':
-      runSwitchCommand(args, effectiveContext, output);
+      await runSwitchCommand(args, effectiveContext, output);
       break;
 
     case 'status':

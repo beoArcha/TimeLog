@@ -36,6 +36,7 @@ describe('Unit Tests: DataContext & Domain Slice Hooks', () => {
     setActiveLog: vi.fn(),
     handleStartTimer: vi.fn(),
     handleStopTimer: vi.fn(),
+    handleSwitchTimer: vi.fn(),
     handleEditTimeLog: vi.fn(),
     holidays: [{ id: 'h1', date: '2026-01-01', type: 'holiday' as const, name: 'New Year' }],
     setHolidays: vi.fn(),

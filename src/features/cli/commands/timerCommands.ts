@@ -59,16 +59,17 @@ export const runStartCommand = (
   }
 };
 
-export const runSwitchCommand = (
+export const runSwitchCommand = async (
   args: string[],
   context: CliEngineContext,
   outputs: TerminalOutput | TerminalLine[],
-): void => {
+): Promise<void> => {
   const terminalOut = outputs instanceof TerminalOutput ? outputs : new TerminalOutput();
   const {
     tasks,
     onStartTimer,
     onStopTimer,
+    onSwitchTask,
     setSelectedTaskId,
     locale,
     customTranslations,
@@ -101,9 +102,13 @@ export const runSwitchCommand = (
     return;
   }
 
-  onStopTimer();
   setSelectedTaskId(taskObj.id);
-  onStartTimer(taskObj.id);
+  if (onSwitchTask) {
+    await onSwitchTask(taskObj.id);
+  } else {
+    await onStopTimer();
+    await onStartTimer(taskObj.id);
+  }
 
   terminalOut.success(`🔀 ${translate(locale, "cli", "SwitchSuccess", customTranslations, { name: taskObj.name, taskId: taskObj.id })}`);
 

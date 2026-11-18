@@ -59,6 +59,42 @@ describe('Unit Tests: useTimerManager Hook', () => {
     );
   });
 
+  it('should switch timer through a single engine call and reload state once', async () => {
+    // Arrange
+    const switchSpy = vi.spyOn(engine.timer, 'switchTimer').mockResolvedValue();
+    const startSpy = vi.spyOn(engine.timer, 'startTimer').mockResolvedValue();
+    const stopSpy = vi.spyOn(engine.timer, 'stopTimer').mockResolvedValue();
+    const switchedLog = { id: 'log3', taskId: 't2', projectId: 'p1', startTime: '2026-01-01T12:00:00Z', endTime: null, note: null, editHistory: null };
+    const closedLog = { ...mockLog, endTime: '2026-01-01T12:00:00Z' };
+    const loadSpy = vi.spyOn(router.core, 'load').mockResolvedValue({
+      projects: [],
+      tasks: [],
+      logs: [closedLog, switchedLog],
+      activeLog: switchedLog,
+    });
+    const { result } = renderHook(() =>
+      useTimerManager({
+        repositoryState: mockRepositoryState,
+        actionRunner: mockActionRunner,
+        pushToApi,
+        refreshComputedMetrics,
+      })
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.handleSwitchTimer('t2');
+    });
+
+    // Assert
+    expect(switchSpy).toHaveBeenCalledExactlyOnceWith('t2');
+    expect(startSpy).not.toHaveBeenCalled();
+    expect(stopSpy).not.toHaveBeenCalled();
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(mockRepositoryState.setActiveLogState).toHaveBeenCalledWith(switchedLog);
+    expect(refreshComputedMetrics).toHaveBeenCalledTimes(1);
+  });
+
   it('should stop timer and notify termination to pushToApi', async () => {
     const stopSpy = vi.spyOn(engine.timer, 'stopTimer').mockResolvedValue();
     const stoppedLogs = [
