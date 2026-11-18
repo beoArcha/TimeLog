@@ -47,10 +47,11 @@ test.describe('Backup and Restore E2E Suite', () => {
   test('should export database backup, clear state via reset, and restore from exported JSON', async ({
     page,
     mainPage,
+    settingsPage,
   }) => {
     // 1. Verify initial seeded task is on main layout
-    await mainPage.switchTab('main');
-    await expect(page.locator(`text=${TEST_NAMES.TASK_ALPHA}`)).toBeVisible();
+    await mainPage.switchTab('tasks');
+    await expect(mainPage.rootTaskCard(TEST_IDS.TASK_ALPHA)).toBeVisible();
 
     // 2. Navigate to Backup tab
     const backupTabBtn = page.locator('[data-testid="tab-backup"]');
@@ -81,23 +82,14 @@ test.describe('Backup and Restore E2E Suite', () => {
     expect(parsedPayload.projects[0].name).toBe(TEST_NAMES.PROJECT_ALPHA);
 
     // 4. Reset database via Settings tab
-    await mainPage.switchTab('options');
+    await mainPage.switchTab('settings');
 
-    const destructiveSection = page.locator('[data-testid="destructive-zone-card"]');
-    await destructiveSection.click();
-
-    const hardResetBtn = page.locator('[data-testid="hard-reset-btn"]');
-    await hardResetBtn.click();
-
-    const promptInput = page.locator('[data-testid="prompt-dialog-input"]');
-    await promptInput.fill('reset');
-
-    const confirmBtn = page.locator('[data-testid="prompt-dialog-confirm-btn"]');
-    await confirmBtn.click();
+    await settingsPage.openHardResetDialog();
+    await settingsPage.resetDialogConfirmBtn.click();
 
     // 5. Verify database cleared on main screen
-    await mainPage.switchTab('main');
-    await expect(page.locator(`text=${TEST_NAMES.TASK_ALPHA}`)).not.toBeVisible();
+    await mainPage.switchTab('tasks');
+    await expect(mainPage.rootTaskCard(TEST_IDS.TASK_ALPHA)).not.toBeVisible();
 
     // 6. Navigate back to Backup tab and restore from the downloaded buffer
     await backupTabBtn.click();
@@ -110,7 +102,30 @@ test.describe('Backup and Restore E2E Suite', () => {
     });
 
     // 7. Verify restored task appears on screen after restore
-    await mainPage.switchTab('main');
-    await expect(page.locator(`text=${TEST_NAMES.TASK_ALPHA}`)).toBeVisible();
+    await mainPage.switchTab('tasks');
+    await expect(mainPage.rootTaskCard(TEST_IDS.TASK_ALPHA)).toBeVisible();
+  });
+
+  test('should keep data after cancelling the database reset and clear it after confirming', async ({
+    mainPage,
+    settingsPage,
+  }) => {
+    await mainPage.switchTab('settings');
+
+    await settingsPage.openHardResetDialog();
+    await expect(settingsPage.resetDialogCancelBtn).toBeVisible();
+
+    await settingsPage.resetDialogCancelBtn.click();
+    await expect(settingsPage.resetDialogCancelBtn).toBeHidden();
+
+    await mainPage.switchTab('tasks');
+    await expect(mainPage.rootTaskCard(TEST_IDS.TASK_ALPHA)).toBeVisible();
+
+    await mainPage.switchTab('settings');
+    await settingsPage.openHardResetDialog();
+    await settingsPage.resetDialogConfirmBtn.click();
+
+    await mainPage.switchTab('tasks');
+    await expect(mainPage.rootTaskCard(TEST_IDS.TASK_ALPHA)).toBeHidden();
   });
 });
