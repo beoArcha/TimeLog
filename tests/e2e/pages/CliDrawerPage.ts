@@ -1,6 +1,10 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
+const HELP_ONLY_COMMAND_TOKENS = ['addsubtask', 'renameproject', 'holidays'] as const;
+
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export class CliDrawerPage extends BasePage {
   readonly drawerWrapper: Locator;
   readonly drawerContainer: Locator;
@@ -42,5 +46,44 @@ export class CliDrawerPage extends BasePage {
 
   async expectOutputContains(text: string): Promise<void> {
     await expect(this.terminalHistory).toContainText(text);
+  }
+
+  async expectHelpListing(): Promise<void> {
+    for (const commandToken of HELP_ONLY_COMMAND_TOKENS) {
+      await this.expectOutputContains(commandToken);
+    }
+  }
+
+  async expectStartedOutput(taskName: string): Promise<void> {
+    await this.expectMarkedTaskOutput('▶️', taskName);
+  }
+
+  async expectSwitchedOutput(taskName: string): Promise<void> {
+    await this.expectMarkedTaskOutput('🔀', taskName);
+  }
+
+  async expectStoppedOutput(taskName: string): Promise<void> {
+    await this.expectMarkedTaskOutput('⏹️', taskName);
+  }
+
+  async expectStatusOutput(taskId: string): Promise<void> {
+    await this.expectOutputContains(`(ID: ${taskId})`);
+  }
+
+  async readModeBadgeText(): Promise<string> {
+    return (await this.modeBadge.textContent())?.trim() ?? '';
+  }
+
+  async expectModeBadgeChangedFrom(previousBadgeText: string): Promise<void> {
+    await expect(this.modeBadge).not.toHaveText(previousBadgeText);
+  }
+
+  async expectModeBadgeEquals(badgeText: string): Promise<void> {
+    await expect(this.modeBadge).toHaveText(badgeText);
+  }
+
+  private async expectMarkedTaskOutput(marker: string, taskName: string): Promise<void> {
+    const markedLine = new RegExp(`${escapeRegExp(marker)}[^"]*"${escapeRegExp(taskName)}"`);
+    await expect(this.terminalHistory).toContainText(markedLine);
   }
 }

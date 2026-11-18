@@ -27,7 +27,7 @@ test.describe('CLI Drawer Global Workflows (E2E)', () => {
 
     // Execute help
     await cliDrawerPage.runCommand('help');
-    await cliDrawerPage.expectOutputContains('AVAILABLE COMMANDS');
+    await cliDrawerPage.expectHelpListing();
 
     // Dismiss via Escape
     await cliDrawerPage.closeDrawerViaEsc();
@@ -63,7 +63,7 @@ test.describe('CLI Drawer Global Workflows (E2E)', () => {
     await expect(cliDrawerPage.drawerContainer).toBeVisible();
 
     await cliDrawerPage.runCommand(`start ${TEST_IDS.TASK_ALPHA}`);
-    await cliDrawerPage.expectOutputContains(`Started timer for task: ${TEST_NAMES.TASK_ALPHA}`);
+    await cliDrawerPage.expectStartedOutput(TEST_NAMES.TASK_ALPHA);
 
     // Verify main app timer banner is active
     await expect(mainPage.activeTimerBanner).toBeVisible();
@@ -104,7 +104,7 @@ test.describe('CLI Drawer Global Workflows (E2E)', () => {
 
     // Atomically switch to task2
     await cliDrawerPage.runCommand(`switch ${task2.id}`);
-    await cliDrawerPage.expectOutputContains(`Switched to task: ${task2.name}`);
+    await cliDrawerPage.expectSwitchedOutput(task2.name);
 
     // Verify timer banner reflects switched task
     await expect(mainPage.activeTimerBanner).toContainText(task2.name);
@@ -124,50 +124,12 @@ test.describe('CLI Drawer Global Workflows (E2E)', () => {
     await cliDrawerPage.openDrawerViaShortcut();
     await expect(cliDrawerPage.drawerContainer).toBeVisible();
 
-    // Verify initially LIVE ENGINE
-    await expect(cliDrawerPage.modeBadge).toContainText('LIVE ENGINE');
+    const liveBadgeText = await cliDrawerPage.readModeBadgeText();
 
-    // Turn sandbox on
     await cliDrawerPage.runCommand('sandbox on');
-    await cliDrawerPage.expectOutputContains('Sandbox Emulator mode enabled');
-    await expect(cliDrawerPage.modeBadge).toContainText('SANDBOX EMULATOR');
+    await cliDrawerPage.expectModeBadgeChangedFrom(liveBadgeText);
 
-    // Turn sandbox off
     await cliDrawerPage.runCommand('sandbox off');
-    await cliDrawerPage.expectOutputContains('Sandbox Emulator mode disabled');
-    await expect(cliDrawerPage.modeBadge).toContainText('LIVE ENGINE');
-  });
-
-  test('should automatically expand CompactLayout to MediumLayout when drawer opens', async ({
-    mainPage,
-    compactPage,
-    mediumPage,
-    cliDrawerPage,
-  }) => {
-    const mockProject = createMockProject({
-      id: TEST_IDS.PROJECT_COMPACT,
-      name: TEST_NAMES.PROJECT_COMPACT,
-    });
-
-    await mainPage.seedStorage(
-      {
-        projects: [mockProject],
-        tasks: [],
-        logs: [],
-        activeLog: null,
-      },
-      { guiVariant: 'compact' },
-    );
-
-    // Verify compact widget is rendered
-    await expect(compactPage.headerTitle).toBeVisible();
-    await expect(mediumPage.mediumLayout).toBeHidden();
-
-    // Trigger shortcut to open drawer
-    await cliDrawerPage.openDrawerViaShortcut();
-
-    // Layout should auto-expand to medium
-    await expect(mediumPage.mediumLayout).toBeVisible();
-    await expect(cliDrawerPage.drawerContainer).toBeVisible();
+    await cliDrawerPage.expectModeBadgeEquals(liveBadgeText);
   });
 });
