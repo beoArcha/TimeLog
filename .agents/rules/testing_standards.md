@@ -123,6 +123,7 @@ Rust has no nested `describe`, so the scenario goes into the function name: `tes
 
 - Vitest runs with its default per-test timeout (5 s; no override in `vite.config.ts`). Playwright timeouts are set in `tests/e2e/config/playwright.config.ts`.
 - Subprocess tests (`std::process::Command`) must enforce an explicit timeout and pass flags that prevent opening a Tauri/WebView2 window.
+- When running the full Vitest suite locally while Cargo compiles in parallel, use `bun run test -- --maxWorkers=50%` to prevent CPU starvation. The 5 s timeout is not raised; slow tests must be made cheaper instead.
 - A test that needs more than 60 s is a defect to fix, not a timeout to raise.
 
 ## 10. Temporary Tool Directories

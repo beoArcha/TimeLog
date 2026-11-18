@@ -71,10 +71,11 @@ Bun is the only JavaScript toolchain. Never use `npm`, `npx`, `yarn` or `pnpm`, 
 | Rust architecture tests | `bun run test:arch:rust` |
 | E2E (Playwright) | `bun run test:e2e` |
 | Regenerate TS bindings | `cargo test --manifest-path src-tauri/Cargo.toml --test export_bindings_when_testing` |
+| Vitest under parallel Cargo load | `bun run test -- --maxWorkers=50%` |
 | Graphify build / update / diagnose | `bun run graphify:build`, `bun run graphify:update`, `bun run graphify:diagnose` |
 | Graphify report / visualization | `bun run graphify:report`, `bun run graphify:viz` |
 
-`bun run check` and `bun run test:quality` chain steps with `;`, so their exit code reflects only the last step. Read the full output, or run the steps individually, before declaring them green. CI runs each step separately.
+`bun run check` and `bun run test:quality` chain steps with `;`, so their exit code reflects only the last step. Read the full output, or run the steps individually, before declaring them green. CI runs each step separately. When running the full Vitest suite locally while Cargo compiles in parallel, use `bun run test -- --maxWorkers=50%` to prevent CPU contention; the 5 s test timeout is strictly maintained and not raised.
 
 ---
 
