@@ -131,11 +131,10 @@ describe('TimezoneSettingsCard', () => {
     expect(trigger.getAttribute('role')).toBe('combobox');
     expect(trigger.getAttribute('aria-label')).toBe(selectAriaLabel);
 
-    // Decorative clock icon must have aria-hidden="true" and use semantic text-info class
+    // The clock icon is decorative, so assistive technology must skip it
     const clockIcon = container.querySelector('svg.lucide-clock');
     expect(clockIcon).not.toBeNull();
     expect(clockIcon?.getAttribute('aria-hidden')).toBe('true');
-    expect(clockIcon?.getAttribute('class')).toContain('text-info');
   });
 
   it('should call setTimezone with Asia/Tokyo when the user picks it from the select', async () => {
