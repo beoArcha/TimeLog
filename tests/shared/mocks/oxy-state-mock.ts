@@ -87,6 +87,7 @@ export interface OXyFlowState {
   handleToggleTaskComplete?: Mock | ((id: string) => Promise<unknown>);
   handleStartTimer?: Mock | ((projectId: string, taskId: string) => Promise<unknown>);
   handleStopTimer?: Mock | (() => Promise<unknown>);
+  handleSwitchTimer?: Mock | ((taskId: string) => Promise<unknown>);
   handleEditTimeLog?: Mock | ((id: string, startTime: string, endTime: string | null, note: string | null) => Promise<unknown>);
   handleDeleteTimeLog?: Mock | ((id: string) => Promise<unknown>);
   handleInsertTimeLog?: Mock | ((id: string, taskId: string, startTime: string, endTime?: string | null, note?: string | null) => Promise<unknown>);
@@ -179,6 +180,7 @@ export const getMockOXyFlowState = (): OXyFlowState => ({
   handleToggleTaskComplete: vi.fn(),
   handleStartTimer: vi.fn(),
   handleStopTimer: vi.fn(),
+  handleSwitchTimer: vi.fn(),
   handleEditTimeLog: vi.fn(),
   handleDeleteTimeLog: vi.fn(),
   handleInsertTimeLog: vi.fn(),

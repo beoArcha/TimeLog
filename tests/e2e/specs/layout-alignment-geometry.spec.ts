@@ -34,6 +34,12 @@ test.describe('Windowed Frame Geometry and Content Alignment in Full Mode (E2E)'
 
         // Wait for scale and entrance transition to settle at expected width
         await mainPage.waitForLayoutStability(vp.expectedFrameMaxWidth);
+        // waitForLayoutStability accepts a width within 1px of the target, but the entrance scale
+        // animation (0.98 -> 1) passes through sub-pixel widths such as 1279.x before it ends at
+        // exactly the target, so poll until the frame reaches its final width before measuring.
+        await expect
+          .poll(() => mainPage.windowedFrame.evaluate((el) => el.getBoundingClientRect().width))
+          .toBe(vp.expectedFrameMaxWidth);
 
         // 1. Verify outer frame expected width (1280px below 2xl, 1600px at/above 2xl)
         const frameMetrics = await mainPage.windowedFrame.evaluate((el) => {

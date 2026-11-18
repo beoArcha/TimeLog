@@ -34,6 +34,7 @@ export interface TimerState {
   setActiveLog: DataState['setActiveLog'];
   handleStartTimer: DataState['handleStartTimer'];
   handleStopTimer: DataState['handleStopTimer'];
+  handleSwitchTimer: DataState['handleSwitchTimer'];
   handleEditTimeLog: DataState['handleEditTimeLog'];
   handleDeleteTimeLog: DataState['handleDeleteTimeLog'];
   handleInsertTimeLog: DataState['handleInsertTimeLog'];
@@ -110,6 +111,7 @@ export const useTimer = (): TimerState => {
     setActiveLog: data.setActiveLog,
     handleStartTimer: data.handleStartTimer,
     handleStopTimer: data.handleStopTimer,
+    handleSwitchTimer: data.handleSwitchTimer,
     handleEditTimeLog: data.handleEditTimeLog,
     handleDeleteTimeLog: data.handleDeleteTimeLog,
     handleInsertTimeLog: data.handleInsertTimeLog,
@@ -145,6 +147,7 @@ export const useTimerSafe = (): TimerState | null => {
     setActiveLog: data.setActiveLog,
     handleStartTimer: data.handleStartTimer,
     handleStopTimer: data.handleStopTimer,
+    handleSwitchTimer: data.handleSwitchTimer,
     handleEditTimeLog: data.handleEditTimeLog,
     handleDeleteTimeLog: data.handleDeleteTimeLog,
     handleInsertTimeLog: data.handleInsertTimeLog,

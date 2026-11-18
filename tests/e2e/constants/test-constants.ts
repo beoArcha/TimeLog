@@ -10,7 +10,6 @@ export const TEST_IDS = {
   PROJECT_RESILIENCE: 'proj-resilience-1',
   PROJECT_COMPACT: 'proj-compact-101',
   PROJECT_MEDIUM: 'proj-medium-101',
-  PROJECT_DB_EXPLORER: 'proj-db-101',
 
   TASK_ALPHA: 'task-alpha-001',
   TASK_SEEDED: 'task-seeded-888',
@@ -22,7 +21,6 @@ export const TEST_IDS = {
   TASK_RESILIENCE: 'task-resilience-1',
   TASK_COMPACT: 'task-compact-201',
   TASK_MEDIUM: 'task-medium-201',
-  TASK_DB_EXPLORER: 'task-db-201',
 
   LOG_ANALYTICS: 'log-analytics-501',
 } as const;
@@ -39,7 +37,6 @@ export const TEST_NAMES = {
   PROJECT_RESILIENCE: 'Resilience Test Project',
   PROJECT_COMPACT: 'Compact Test Project',
   PROJECT_MEDIUM: 'Medium Layout Project',
-  PROJECT_DB_EXPLORER: 'DB Explorer Test Project',
 
   TASK_ALPHA: 'Alpha Main Task E2E',
   TASK_SEEDED: 'Seeded Task E2E',
@@ -51,7 +48,6 @@ export const TEST_NAMES = {
   TASK_RESILIENCE: 'Continuous Measurement Task',
   TASK_COMPACT: 'Compact Task Alpha',
   TASK_MEDIUM: 'Medium Layout Task',
-  TASK_DB_EXPLORER: 'DB Explorer Test Task',
 
   DESCRIPTION_DEFAULT: 'Test project description for E2E validation',
 } as const;

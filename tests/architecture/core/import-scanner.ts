@@ -1,6 +1,6 @@
-import fs from 'fs';
 import ts from 'typescript';
 import { ImportDeclarationInfo } from './types';
+import { SourceCache, parseSource } from './source-cache';
 
 /**
  * Extracts import and export-from declarations from TypeScript/JavaScript files
@@ -14,14 +14,10 @@ export class ImportScanner {
    * @param filePath Identifier for error reporting.
    */
   public static scanSource(sourceText: string, filePath = 'anonymous.ts'): ImportDeclarationInfo[] {
-    const sourceFile = ts.createSourceFile(
-      filePath,
-      sourceText,
-      ts.ScriptTarget.Latest,
-      true,
-      filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-    );
+    return ImportScanner.scanSourceFile(parseSource(filePath, sourceText), filePath);
+  }
 
+  public static scanSourceFile(sourceFile: ts.SourceFile, filePath: string): ImportDeclarationInfo[] {
     const imports: ImportDeclarationInfo[] = [];
 
     const visit = (node: ts.Node) => {
@@ -87,7 +83,6 @@ export class ImportScanner {
    * @param absolutePath Absolute filesystem path.
    */
   public static scanFile(absolutePath: string): ImportDeclarationInfo[] {
-    const content = fs.readFileSync(absolutePath, 'utf-8');
-    return ImportScanner.scanSource(content, absolutePath);
+    return ImportScanner.scanSourceFile(SourceCache.getSourceFile(absolutePath), absolutePath);
   }
 }

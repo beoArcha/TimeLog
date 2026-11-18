@@ -1,6 +1,6 @@
-import fs from 'fs';
 import ts from 'typescript';
 import { ArchitectureRule, ModuleGraph, RuleViolation } from '../core/types';
+import { SourceCache, parseSource } from '../core/source-cache';
 
 export interface TestGovernanceOptions {
   allowlist?: Set<string> | string[];
@@ -103,15 +103,11 @@ export class TestAstScanner {
   constructor(private readonly detectors: readonly ITestAstDetector[]) {}
 
   public scan(sourceText: string, filePath: string): RuleViolation[] {
-    const violations: RuleViolation[] = [];
-    const sourceFile = ts.createSourceFile(
-      filePath,
-      sourceText,
-      ts.ScriptTarget.Latest,
-      true,
-      filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-    );
+    return this.scanSourceFile(parseSource(filePath, sourceText), filePath);
+  }
 
+  public scanSourceFile(sourceFile: ts.SourceFile, filePath: string): RuleViolation[] {
+    const violations: RuleViolation[] = [];
     const visit = (node: ts.Node) => {
       for (const detector of this.detectors) {
         const violation = detector.detect(node, sourceFile, filePath);
@@ -166,8 +162,8 @@ export class TestGovernanceRule implements ArchitectureRule<TestGovernanceOption
         continue;
       }
 
-      const fileContent = fs.readFileSync(node.absolutePath, 'utf-8');
-      const fileViolations = this.scanner.scan(fileContent, relativeToWorkspace);
+      const sourceFile = SourceCache.getSourceFile(node.absolutePath);
+      const fileViolations = this.scanner.scanSourceFile(sourceFile, relativeToWorkspace);
       violations.push(...fileViolations);
     }
 
