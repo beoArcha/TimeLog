@@ -1,6 +1,6 @@
-import fs from 'fs';
 import ts from 'typescript';
 import { ArchitectureRule, ModuleGraph, RuleViolation } from '../core/types';
+import { SourceCache, parseSource } from '../core/source-cache';
 
 export interface MaxNestedIfsOptions {
   maxDepth?: number;
@@ -40,8 +40,8 @@ export class MaxNestedIfsRule implements ArchitectureRule<MaxNestedIfsOptions> {
         continue;
       }
 
-      const fileContent = fs.readFileSync(node.absolutePath, 'utf-8');
-      violations.push(...this.scanAst(fileContent, normalizedId, maxDepth));
+      const sourceFile = SourceCache.getSourceFile(node.absolutePath);
+      violations.push(...this.scanSourceFile(sourceFile, normalizedId, maxDepth));
     }
 
     return violations;
@@ -52,15 +52,15 @@ export class MaxNestedIfsRule implements ArchitectureRule<MaxNestedIfsOptions> {
     filePath: string,
     maxDepth: number = MAX_ALLOWED_IF_DEPTH
   ): RuleViolation[] {
-    const violations: RuleViolation[] = [];
-    const sourceFile = ts.createSourceFile(
-      filePath,
-      sourceText,
-      ts.ScriptTarget.Latest,
-      true,
-      filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-    );
+    return this.scanSourceFile(parseSource(filePath, sourceText), filePath, maxDepth);
+  }
 
+  public scanSourceFile(
+    sourceFile: ts.SourceFile,
+    filePath: string,
+    maxDepth: number = MAX_ALLOWED_IF_DEPTH
+  ): RuleViolation[] {
+    const violations: RuleViolation[] = [];
     const walk = (node: ts.Node, ifDepth: number) => {
       let currentDepth = ifDepth;
       if (ts.isIfStatement(node)) {

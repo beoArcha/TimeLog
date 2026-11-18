@@ -1,5 +1,5 @@
-import fs from 'fs';
 import { ArchitectureRule, ModuleGraph, RuleViolation } from '../core/types';
+import { SourceCache } from '../core/source-cache';
 
 /**
  * Architectural Rule: Motion Primitive Encapsulation
@@ -50,7 +50,7 @@ export class NoRawMotionRule implements ArchitectureRule {
         continue;
       }
 
-      const fileContent = fs.readFileSync(node.absolutePath, 'utf-8');
+      const fileContent = SourceCache.getText(node.absolutePath);
       violations.push(...this.scanContent(fileContent, normalizedId));
     }
 

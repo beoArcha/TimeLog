@@ -1,6 +1,6 @@
-import fs from 'fs';
 import ts from 'typescript';
 import { ArchitectureRule, ModuleGraph, RuleViolation } from '../core/types';
+import { SourceCache, parseSource } from '../core/source-cache';
 
 export interface NoInlineThemeTernariesOptions {
   allowlist?: Set<string> | string[];
@@ -41,8 +41,8 @@ export class NoInlineThemeTernariesRule implements ArchitectureRule<NoInlineThem
         continue;
       }
 
-      const fileContent = fs.readFileSync(node.absolutePath, 'utf-8');
-      const fileViolations = this.scanAst(fileContent, normalizedId);
+      const sourceFile = SourceCache.getSourceFile(node.absolutePath);
+      const fileViolations = this.scanSourceFile(sourceFile, normalizedId);
       violations.push(...fileViolations);
     }
 
@@ -50,15 +50,11 @@ export class NoInlineThemeTernariesRule implements ArchitectureRule<NoInlineThem
   }
 
   public scanAst(sourceText: string, filePath: string): RuleViolation[] {
-    const violations: RuleViolation[] = [];
-    const sourceFile = ts.createSourceFile(
-      filePath,
-      sourceText,
-      ts.ScriptTarget.Latest,
-      true,
-      filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-    );
+    return this.scanSourceFile(parseSource(filePath, sourceText), filePath);
+  }
 
+  public scanSourceFile(sourceFile: ts.SourceFile, filePath: string): RuleViolation[] {
+    const violations: RuleViolation[] = [];
     const isThemeIdentifier = (expr: ts.Expression): boolean => {
       if (ts.isIdentifier(expr)) {
         return expr.text === 'theme' || expr.text === 'resolvedTheme';

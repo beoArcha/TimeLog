@@ -1,6 +1,6 @@
-import fs from 'fs';
 import ts from 'typescript';
 import { ArchitectureRule, ModuleGraph, RuleViolation } from '../core/types';
+import { SourceCache, parseSource } from '../core/source-cache';
 
 export interface NoRawHtmlPrimitivesOptions {
   allowlist?: Set<string> | string[];
@@ -74,8 +74,8 @@ export class NoRawHtmlPrimitivesRule implements ArchitectureRule<NoRawHtmlPrimit
         continue;
       }
 
-      const fileContent = fs.readFileSync(node.absolutePath, 'utf-8');
-      const fileViolations = this.scanAst(fileContent, normalizedId);
+      const sourceFile = SourceCache.getSourceFile(node.absolutePath);
+      const fileViolations = this.scanSourceFile(sourceFile, normalizedId);
       violations.push(...fileViolations);
     }
 
@@ -86,15 +86,11 @@ export class NoRawHtmlPrimitivesRule implements ArchitectureRule<NoRawHtmlPrimit
    * Scans a TSX source string for forbidden raw JSX elements using TypeScript Compiler AST.
    */
   public scanAst(sourceText: string, filePath: string): RuleViolation[] {
-    const violations: RuleViolation[] = [];
-    const sourceFile = ts.createSourceFile(
-      filePath,
-      sourceText,
-      ts.ScriptTarget.Latest,
-      true,
-      ts.ScriptKind.TSX
-    );
+    return this.scanSourceFile(parseSource(filePath, sourceText, ts.ScriptKind.TSX), filePath);
+  }
 
+  public scanSourceFile(sourceFile: ts.SourceFile, filePath: string): RuleViolation[] {
+    const violations: RuleViolation[] = [];
     const visit = (node: ts.Node) => {
       if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
         if (ts.isIdentifier(node.tagName)) {
