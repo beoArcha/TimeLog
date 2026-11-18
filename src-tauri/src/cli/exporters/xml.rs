@@ -107,6 +107,8 @@ fn preset_name(preset: RangePreset) -> &'static str {
         RangePreset::LastWeek => "lastWeek",
         RangePreset::Month => "month",
         RangePreset::LastMonth => "lastMonth",
+        RangePreset::Last30Days => "last30Days",
+        RangePreset::Year => "year",
         RangePreset::All => "all",
     }
 }

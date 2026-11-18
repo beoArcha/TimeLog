@@ -1,9 +1,9 @@
 // TODO: Remove this adapter once every exporter consumes ReportDocument directly (Phase 24, CLIX-12).
 
 use super::constants::{
-    PERIOD_LABEL_ALL, PERIOD_LABEL_CUSTOM, PERIOD_LABEL_LAST_MONTH, PERIOD_LABEL_LAST_WEEK,
-    PERIOD_LABEL_MONTH, PERIOD_LABEL_TEMPLATE, PERIOD_LABEL_TODAY, PERIOD_LABEL_WEEK,
-    PERIOD_LABEL_YESTERDAY,
+    PERIOD_LABEL_ALL, PERIOD_LABEL_CUSTOM, PERIOD_LABEL_LAST_30_DAYS, PERIOD_LABEL_LAST_MONTH,
+    PERIOD_LABEL_LAST_WEEK, PERIOD_LABEL_MONTH, PERIOD_LABEL_TEMPLATE, PERIOD_LABEL_TODAY,
+    PERIOD_LABEL_WEEK, PERIOD_LABEL_YEAR, PERIOD_LABEL_YESTERDAY,
 };
 use super::{
     format_duration, ReportEntryDto, ReportProjectDto, ReportSubtaskDto, ReportTaskDto,
@@ -23,6 +23,8 @@ pub fn format_period_label(range: &ResolvedRange) -> String {
         Some(RangePreset::LastWeek) => PERIOD_LABEL_LAST_WEEK,
         Some(RangePreset::Month) => PERIOD_LABEL_MONTH,
         Some(RangePreset::LastMonth) => PERIOD_LABEL_LAST_MONTH,
+        Some(RangePreset::Last30Days) => PERIOD_LABEL_LAST_30_DAYS,
+        Some(RangePreset::Year) => PERIOD_LABEL_YEAR,
         Some(RangePreset::All) => PERIOD_LABEL_ALL,
         None => PERIOD_LABEL_CUSTOM,
     };

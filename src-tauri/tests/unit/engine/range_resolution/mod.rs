@@ -5,4 +5,5 @@ mod helpers;
 mod local_date_test;
 mod parity_vectors_test;
 mod presets_test;
+mod rolling_presets_test;
 mod timezone_resolution_test;

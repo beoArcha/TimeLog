@@ -415,6 +415,216 @@
       }
     },
     {
+      "description": "last30Days preset in UTC spans 30 calendar days ending today",
+      "request": {
+        "preset": "last30Days"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-10-13T00:00:00Z",
+        "to": "2026-11-12T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "last30Days"
+      }
+    },
+    {
+      "description": "last30Days preset in Europe/Warsaw crosses the October DST end",
+      "request": {
+        "preset": "last30Days"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-10-12T22:00:00Z",
+        "to": "2026-11-11T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "last30Days"
+      }
+    },
+    {
+      "description": "last30Days preset in America/New_York crosses the November DST end",
+      "request": {
+        "preset": "last30Days"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-10-13T04:00:00Z",
+        "to": "2026-11-12T05:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "last30Days"
+      }
+    },
+    {
+      "description": "last30Days late-night UTC is already tomorrow in Warsaw",
+      "request": {
+        "preset": "last30Days"
+      },
+      "now": "2026-11-11T23:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-10-13T22:00:00Z",
+        "to": "2026-11-12T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "last30Days"
+      }
+    },
+    {
+      "description": "last30Days across the Warsaw DST start keeps local midnights",
+      "request": {
+        "preset": "last30Days"
+      },
+      "now": "2026-04-05T10:00:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-03-06T23:00:00Z",
+        "to": "2026-04-05T22:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "last30Days"
+      }
+    },
+    {
+      "description": "last30Days on 29 February of a leap year starts on 31 January",
+      "request": {
+        "preset": "last30Days"
+      },
+      "now": "2028-02-29T12:00:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2028-01-31T00:00:00Z",
+        "to": "2028-03-01T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "last30Days"
+      }
+    },
+    {
+      "description": "last30Days on 1 March of a non-leap year starts on 31 January",
+      "request": {
+        "preset": "last30Days"
+      },
+      "now": "2027-03-01T12:00:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2027-01-31T00:00:00Z",
+        "to": "2027-03-02T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "last30Days"
+      }
+    },
+    {
+      "description": "last30Days in mid January wraps into December of the previous year",
+      "request": {
+        "preset": "last30Days"
+      },
+      "now": "2026-01-15T10:00:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2025-12-17T00:00:00Z",
+        "to": "2026-01-16T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "last30Days"
+      }
+    },
+    {
+      "description": "year preset in UTC",
+      "request": {
+        "preset": "year"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-01-01T00:00:00Z",
+        "to": "2027-01-01T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "year"
+      }
+    },
+    {
+      "description": "year preset in Europe/Warsaw",
+      "request": {
+        "preset": "year"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2025-12-31T23:00:00Z",
+        "to": "2026-12-31T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "year"
+      }
+    },
+    {
+      "description": "year preset in America/New_York",
+      "request": {
+        "preset": "year"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-01-01T05:00:00Z",
+        "to": "2027-01-01T05:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "year"
+      }
+    },
+    {
+      "description": "year preset in Australia/Sydney starts in southern summer time",
+      "request": {
+        "preset": "year"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Australia/Sydney",
+      "expected": {
+        "from": "2025-12-31T13:00:00Z",
+        "to": "2026-12-31T13:00:00Z",
+        "timezone": "Australia/Sydney",
+        "preset": "year"
+      }
+    },
+    {
+      "description": "year preset after local New Year in Warsaw while UTC is still the old year",
+      "request": {
+        "preset": "year"
+      },
+      "now": "2026-12-31T23:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-12-31T23:00:00Z",
+        "to": "2027-12-31T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "year"
+      }
+    },
+    {
+      "description": "year preset before local New Year in New York while UTC is already the new year",
+      "request": {
+        "preset": "year"
+      },
+      "now": "2027-01-01T02:00:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-01-01T05:00:00Z",
+        "to": "2027-01-01T05:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "year"
+      }
+    },
+    {
+      "description": "year preset in a leap year in UTC",
+      "request": {
+        "preset": "year"
+      },
+      "now": "2028-02-29T12:00:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2028-01-01T00:00:00Z",
+        "to": "2029-01-01T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "year"
+      }
+    },
+    {
       "description": "custom naive bound in a DST overlap resolves to the earlier instant",
       "request": {
         "from": "2026-10-25T02:30:00",

@@ -75,6 +75,8 @@
         "lastWeek",
         "month",
         "lastMonth",
+        "last30Days",
+        "year",
         "all"
       ]
     },

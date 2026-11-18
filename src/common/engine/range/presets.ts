@@ -1,6 +1,10 @@
 import type { RangePreset } from '@bindings/RangePreset';
 import { DAY_MS, localDateAt, wallMsFromFields, type WallMs } from './zonedTime';
 
+// `last30Days` is the 30 local calendar days ending with today, so today is day 30 of the span.
+const LAST_30_DAYS_SPAN = 30;
+const MONTHS_PER_YEAR = 12;
+
 export type PresetDays = readonly [from: WallMs, to: WallMs];
 
 // Month starts are always day 1, so shifting the month can never overflow into the next one.
@@ -20,6 +24,7 @@ export function presetDays(preset: RangePreset, now: Date, timeZone: string): Pr
   const today = wallMsFromFields(year, month, day) as WallMs;
   const weekStart = today - mondayOffsetOf(today) * DAY_MS;
   const monthStart = wallMsFromFields(year, month, 1) as WallMs;
+  const yearStart = wallMsFromFields(year, 1, 1) as WallMs;
 
   switch (preset) {
     case 'all':
@@ -36,5 +41,9 @@ export function presetDays(preset: RangePreset, now: Date, timeZone: string): Pr
       return [monthStart, shiftMonths(monthStart, 1)];
     case 'lastMonth':
       return [shiftMonths(monthStart, -1), monthStart];
+    case 'last30Days':
+      return [today - (LAST_30_DAYS_SPAN - 1) * DAY_MS, today + DAY_MS];
+    case 'year':
+      return [yearStart, shiftMonths(yearStart, MONTHS_PER_YEAR)];
   }
 }
