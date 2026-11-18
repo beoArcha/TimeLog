@@ -11,13 +11,58 @@ import { SidebarHeader } from './sidebar/SidebarHeader';
 import { SidebarProjectForm } from './sidebar/SidebarProjectForm';
 import { SidebarProjectItem } from './sidebar/SidebarProjectItem';
 import { Area } from '@components/ui/area';
+import { useReportScopeSafe } from '@features/reports/context/ReportScopeContext';
+
+function resolveIsSelected(
+  projectId: string,
+  isReportsActive: boolean,
+  selectedProjectId: string | null,
+  activeReportProjectIds: readonly string[]
+): boolean {
+  if (isReportsActive) {
+    return activeReportProjectIds.includes(projectId);
+  }
+  return selectedProjectId === projectId;
+}
 
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
     projects, metrics, locale, customTranslations,
     onAddProject, onUpdateProject, selectedProjectId, setSelectedProjectId,
-    onRenameProject, onToggleProjectArchive, isLoading, activeLog, tasks
+    onRenameProject, onToggleProjectArchive, isLoading, activeLog, tasks,
+    toggleReportProject, clearReportProjects,
   } = state;
+
+  const isReportsActive = state.activeLargeTab === 'reports' || state.activeView === 'reports';
+  const reportScope = useReportScopeSafe();
+  const activeReportProjectIds = reportScope?.reportProjectIds ?? state.reportProjectIds ?? [];
+
+  const isAllSelected = reportScope
+    ? reportScope.isAllSelected
+    : activeReportProjectIds.length === 0;
+
+  const handleSelectProject = React.useCallback(
+    (projectId: string) => {
+      if (isReportsActive) {
+        if (reportScope) {
+          reportScope.toggleReportProject(projectId);
+        } else if (toggleReportProject) {
+          toggleReportProject(projectId);
+        }
+      } else {
+        setSelectedProjectId(projectId);
+      }
+    },
+    [isReportsActive, reportScope, toggleReportProject, setSelectedProjectId]
+  );
+
+  const handleResetScope = React.useCallback(() => {
+    if (reportScope) {
+      reportScope.clearReportProjects();
+    } else if (clearReportProjects) {
+      clearReportProjects();
+    }
+  }, [reportScope, clearReportProjects]);
 
   const { handleDeleteProject } = useProjects();
   const { orderedProjects, moveProject, isFirst, isLast } = useProjectReorder({ projects });
@@ -52,7 +97,14 @@ export default function Sidebar({ state }: { state: GuiState }) {
   return (
     <Area as="aside" id="projects-sidebar" aria-label={translate(locale, 'project', 'ProjectsLabel', customTranslations)} className="lg:col-span-4 flex flex-col gap-main min-w-0 w-full">
       <Area variant="glass" radius="main" padding="main" elevation="2xl" className="transition-all duration-300">
-        <SidebarHeader count={projects.length} locale={locale} customTranslations={customTranslations} />
+        <SidebarHeader
+          count={projects.length}
+          locale={locale}
+          customTranslations={customTranslations}
+          isReportsActive={isReportsActive}
+          isAllSelected={isAllSelected}
+          onResetScope={handleResetScope}
+        />
 
         <SidebarProjectForm
           onAddProject={onAddProject}
@@ -69,32 +121,42 @@ export default function Sidebar({ state }: { state: GuiState }) {
           {orderedProjects.length === 0 ? (
             <ProjectEmptyState onApplyTemplate={handleApplyTemplate} locale={locale} customTranslations={customTranslations} />
           ) : (
-            orderedProjects.map(p => (
-              <SidebarProjectItem
-                key={p.id}
-                project={p}
-                isSelected={selectedProjectId === p.id}
-                metrics={metrics}
-                activeLog={activeLog}
-                totalSeconds={metrics?.projects?.[p.id]?.totalElapsedSeconds ?? 0}
-                locale={locale}
-                customTranslations={customTranslations}
-                isFirst={isFirst(p.id)}
-                isLast={isLast(p.id)}
-                isEditingInline={editingId === p.id}
-                inlineEditName={editName}
-                taskCount={tasks ? tasks.filter(t => t.projectId === p.id).length : 0}
-                onSelect={setSelectedProjectId}
-                onEditDialog={setEditingProject}
-                onToggleArchive={onToggleProjectArchive}
-                onDeleteProject={handleDeleteProject}
-                onMoveUp={id => moveProject(id, 'up')}
-                onMoveDown={id => moveProject(id, 'down')}
-                onInlineNameChange={setEditName}
-                onCommitInlineRename={handleCommitInlineRename}
-                onCancelInlineRename={() => setEditingId(null)}
-              />
-            ))
+            orderedProjects.map(p => {
+              const isSelected = resolveIsSelected(
+                p.id,
+                isReportsActive,
+                selectedProjectId,
+                activeReportProjectIds
+              );
+
+              return (
+                <SidebarProjectItem
+                  key={p.id}
+                  project={p}
+                  isSelected={isSelected}
+                  isReportsActive={isReportsActive}
+                  metrics={metrics}
+                  activeLog={activeLog}
+                  totalSeconds={metrics?.projects?.[p.id]?.totalElapsedSeconds ?? 0}
+                  locale={locale}
+                  customTranslations={customTranslations}
+                  isFirst={isFirst(p.id)}
+                  isLast={isLast(p.id)}
+                  isEditingInline={editingId === p.id}
+                  inlineEditName={editName}
+                  taskCount={tasks ? tasks.filter(t => t.projectId === p.id).length : 0}
+                  onSelect={handleSelectProject}
+                  onEditDialog={setEditingProject}
+                  onToggleArchive={onToggleProjectArchive}
+                  onDeleteProject={handleDeleteProject}
+                  onMoveUp={id => moveProject(id, 'up')}
+                  onMoveDown={id => moveProject(id, 'down')}
+                  onInlineNameChange={setEditName}
+                  onCommitInlineRename={handleCommitInlineRename}
+                  onCancelInlineRename={() => setEditingId(null)}
+                />
+              );
+            })
           )}
         </div>
       </Area>

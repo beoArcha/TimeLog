@@ -17,8 +17,11 @@ export function resolveReportProjectScope(
  * Report scope independent of the Tasks tab working project.
  * An empty list means all projects.
  */
-export function useReportProjectScope(projects: readonly Project[]) {
-  const [requestedIds, setRequestedIds] = useState<readonly string[]>([]);
+export function useReportProjectScope(
+  projects: readonly Project[],
+  initialProjectIds: readonly string[] = []
+) {
+  const [requestedIds, setRequestedIds] = useState<readonly string[]>(initialProjectIds);
 
   const reportProjectIds = useMemo(
     () => resolveReportProjectScope(requestedIds, projects),

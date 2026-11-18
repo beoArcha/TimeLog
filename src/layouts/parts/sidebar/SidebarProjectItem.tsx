@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Pencil, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
+import { Clock, Pencil, ChevronUp, ChevronDown, Trash2, Check } from 'lucide-react';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { Locale } from '@bindings/Locale';
@@ -25,6 +25,7 @@ export interface SidebarProjectItemProps {
   key?: React.Key;
   project: Project;
   isSelected: boolean;
+  isReportsActive?: boolean;
   totalSeconds?: number;
   metrics?: EngineComputedMetrics | null;
   activeLog?: TimeLog | null;
@@ -50,6 +51,7 @@ export interface SidebarProjectItemProps {
 export function SidebarProjectItem({
   project,
   isSelected,
+  isReportsActive = false,
   totalSeconds,
   metrics,
   activeLog,
@@ -122,8 +124,19 @@ export function SidebarProjectItem({
     <>
       <div
       id={`project-item-${project.id}`}
+      data-testid={`sidebar-project-${project.id}`}
       data-archived={project.archived ? 'true' : 'false'}
+      role={isReportsActive ? 'button' : undefined}
+      aria-pressed={isReportsActive ? isSelected : undefined}
+      aria-selected={isSelected}
+      aria-label={project.name}
       onClick={() => onSelect(project.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect(project.id);
+        }
+      }}
       className={`text-left w-full padding-section rounded-section flex items-center justify-between transition-all duration-300 relative overflow-hidden cursor-pointer group ${
         isSelected
           ? 'bg-primary/10 border-l-4 border-l-primary border border-border shadow-xs'
@@ -131,6 +144,13 @@ export function SidebarProjectItem({
       } ${project.archived ? 'opacity-50 grayscale' : ''}`}
     >
       <HStack gap="sm" align="start" className="z-10 animate-fade-in min-w-0 flex-1 mr-2 gap-2.5">
+        {isReportsActive && isSelected && (
+          <Check
+            className="w-4 h-4 text-primary shrink-0 mt-1"
+            data-testid={`project-selected-check-${project.id}`}
+            aria-hidden="true"
+          />
+        )}
         {project.icon ? (
           <IconBox size="sm" variant="ghost" as="span" className="shrink-0 text-lg">
             {project.icon}
