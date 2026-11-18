@@ -13,6 +13,7 @@ export class MediumLayoutPage extends BasePage {
   readonly saveNewProjectBtn: Locator;
   readonly newProjectHeaderBtn: Locator;
   readonly toggleDockBtn: Locator;
+  readonly dbInspectorToggle: Locator;
 
   readonly newTaskInput: Locator;
   readonly addTaskBtn: Locator;
@@ -32,6 +33,7 @@ export class MediumLayoutPage extends BasePage {
     this.saveNewProjectBtn = page.locator('[data-testid="medium-save-new-project-btn"]');
     this.newProjectHeaderBtn = page.locator('[data-testid="medium-new-project-btn"]');
     this.toggleDockBtn = page.locator('[data-testid="toggle-dock-btn"]');
+    this.dbInspectorToggle = page.locator('#toggle-db-inspector-btn');
 
     this.newTaskInput = page.locator('#new-task-input');
     this.addTaskBtn = page.locator('#add-task-btn');

@@ -73,7 +73,8 @@ test.describe('Medium Layout Specialized View E2E Suite', () => {
 
     // Switch to Settings tab
     await mediumPage.selectTab('settings');
-    await expect(page.locator('#toggle-db-inspector-btn')).toBeVisible();
+    // The DB inspector is gated by canInspectDatabase, which is false in the browser runtime.
+    await expect(mediumPage.dbInspectorToggle).toBeHidden();
 
     // Switch back to Tasks tab
     await mediumPage.selectTab('tasks');

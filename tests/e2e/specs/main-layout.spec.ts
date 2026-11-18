@@ -17,7 +17,8 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
     await expect(mainPage.headerLogo).toBeVisible();
     await expect(mainPage.tabMain).toBeVisible();
     await expect(mainPage.tabReports).toBeVisible();
-    await expect(mainPage.tabDb).toBeVisible();
+    // The browser runtime disables database inspection, so the DB tab is never rendered.
+    await expect(mainPage.tabDb).toBeHidden();
     await expect(mainPage.tabOptions).toBeVisible();
     await expect(mainPage.idleTimerBanner).toBeVisible();
     await expect(mainPage.activeTimerBanner).toBeHidden();
