@@ -108,7 +108,7 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
       onStopTimer: props?.onStopTimer ?? ambientData?.handleStopTimer ?? (() => {}),
       isSandbox: isSandboxMode,
       onToggleSandbox: handleToggleSandbox,
-      onSwitchTask: props?.onSwitchTask,
+      onSwitchTask: props?.onSwitchTask ?? ambientData?.handleSwitchTimer,
       onRefreshData: ambientData?.refreshData ? async () => { await ambientData.refreshData(); } : undefined,
     };
 

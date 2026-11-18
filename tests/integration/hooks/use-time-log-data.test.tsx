@@ -6,6 +6,7 @@ import { TEST_CONSTANTS } from '@tests/shared/test-constants';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { PersistencePlugin } from '../../../src/plugins/persistence/PersistencePlugin';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 import { DEMO_PROJECTS, DEMO_TASKS, DEMO_LOGS } from '@plugins/persistence/InitialData';
 const LOCAL_STORAGE_KEY = 'timelog_persistence_plugin_state';
 
@@ -302,6 +303,31 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(result.current.logs[0].endTime).not.toBeNull();
     expect(pushToApi).toHaveBeenCalledTimes(1);
     expect(pushToApi.mock.calls[0][0].event).toBe('TERMINATE');
+  });
+
+  it('Given a running timer on task A, When handleSwitchTimer is called for task B, Then task B is the only active log after a single reload', async () => {
+    const taskA = aTask({ id: TEST_CONSTANTS.TASK_ID_101, projectId: TEST_CONSTANTS.PROJECT_ID_1, name: 'Task A' });
+    const taskB = aTask({ id: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, name: 'Task B' });
+    const runningOnA = aTimeLog({ id: 'log_a', taskId: taskA.id, projectId: taskA.projectId, startTime: '2026-06-20T12:00:00Z', endTime: null });
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+      projects: [aProject({ id: TEST_CONSTANTS.PROJECT_ID_1 })],
+      tasks: [taskA, taskB],
+      logs: [runningOnA],
+      activeLog: runningOnA,
+      holidays: [],
+      patches: [],
+    }));
+    const { result } = await renderTimeLog();
+    const loadSpy = vi.spyOn(PersistenceRouter.getInstance().core, 'load');
+
+    await act(async () => {
+      await result.current.handleSwitchTimer(taskB.id);
+    });
+
+    expect(result.current.activeLog?.taskId).toBe(taskB.id);
+    expect(result.current.logs.filter(l => l.endTime === null)).toHaveLength(1);
+    expect(result.current.logs.find(l => l.id === 'log_a')?.endTime).not.toBeNull();
+    expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
   it('Given running task timer, When handleStopTimer is called, Then active log is closed and pushToApi is triggered', async () => {
