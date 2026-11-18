@@ -47,6 +47,9 @@ jobs:
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
           install-linux-deps: ${{ matrix.platform == 'ubuntu-22.04' && 'true' || 'false' }}
+          install-bundling-deps: ${{ matrix.platform == 'ubuntu-22.04' && 'true' || 'false' }}
+          shared-key: tauri-bundle
+          cache-save-if: "true"
 
       - name: Pre-build Universal CLI Binary (macOS)
         if: matrix.platform == 'macos-latest'

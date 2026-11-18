@@ -42,12 +42,12 @@ jobs:
               - 'scripts/validate-docs.js'
             frontend:
               - 'src/**'
-              - 'tests/**'
-              - '!tests/e2e/**'
-              - '!docs/**'
-              - '!.agents/**'
-              - '!*.md'
-              - '!**/*.md'
+              - 'tests/unit/**'
+              - 'tests/integration/**'
+              - 'tests/architecture/**'
+              - 'tests/smoke/**'
+              - 'tests/shared/**'
+              - 'tests/fixtures/**'
               - 'package.json'
               - 'bun.lock'
               - 'bun.lockb'
@@ -60,7 +60,9 @@ jobs:
               - 'scripts/**'
             rust:
               - 'src-tauri/**'
-              - '!src-tauri/**/*.md'
+              - 'src/bindings/**'
+              - 'tests/fixtures/**'
+              - 'tests/shared/fixtures/**'
               - 'Cargo.toml'
               - 'Cargo.lock'
               - 'rust-toolchain*'
@@ -233,6 +235,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-frontend
+      # Rust is required here only for `cargo test --test smoke_test` (part of `bun run test:smoke`).
       - uses: ./.github/actions/setup-rust
         with:
           install-linux-deps: "true"
