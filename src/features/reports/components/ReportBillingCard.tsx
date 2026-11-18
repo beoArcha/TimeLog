@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Coins, DollarSign } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { StatCard } from '@components/StatCard';
 import { CurrencyStatBadge } from '@components/CurrencyStatBadge';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
-import { EngineRouter } from '@common/engine/EngineRouter';
 import { RangeBillingResult, CurrencyBillingSummary } from '@common/engine/billing/types';
-import { getRangeFilterForPeriod } from '../utils/periodRanges';
-import { Settings } from '@bindings/Settings';
 import { Grid } from '@components/ui/grid';
 import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert';
 import {
@@ -21,12 +18,6 @@ import {
 } from '@components/ui/table';
 
 export interface ReportBillingCardProps {
-  reportPeriod: string;
-  customFrom?: string;
-  customTo?: string;
-  nowIso?: string;
-  selectedProjectIds?: readonly string[] | null;
-  sysSettings?: Settings | null;
   billingResult?: RangeBillingResult | null;
   billingError?: string | null;
   isLoading?: boolean;
@@ -48,111 +39,12 @@ function formatDisplayRate(
 }
 
 export default function ReportBillingCard({
-  reportPeriod,
-  customFrom,
-  customTo,
-  nowIso,
-  selectedProjectIds,
-  sysSettings,
-  billingResult: propBillingResult,
-  billingError: propBillingError,
-  isLoading: propIsLoading,
+  billingResult = null,
+  billingError = null,
+  isLoading = false,
   forceMountOnPrint = false,
 }: ReportBillingCardProps) {
   const { t } = useTranslation('report');
-  const [internalResult, setInternalResult] = useState<RangeBillingResult | null>(null);
-  const [internalLoading, setInternalLoading] = useState<boolean>(false);
-  const [internalError, setInternalError] = useState<string | null>(null);
-
-  const isControlled = propBillingResult !== undefined || propBillingError !== undefined;
-  const billingResult = isControlled ? (propBillingResult ?? null) : internalResult;
-  const isLoading = isControlled ? (propIsLoading ?? false) : internalLoading;
-  const billingError = isControlled ? (propBillingError ?? null) : internalError;
-
-  useEffect(() => {
-    if (isControlled) return;
-
-    let isCancelled = false;
-
-    const fetchBilling = async () => {
-      setInternalLoading(true);
-      setInternalError(null);
-      setInternalResult(null);
-      let filterContext: unknown = null;
-      try {
-        const now = nowIso ? new Date(nowIso) : new Date();
-        const { filter } = getRangeFilterForPeriod(
-          reportPeriod,
-          now,
-          customFrom,
-          customTo,
-          sysSettings?.includePatchesInReports ?? false
-        );
-
-        if (selectedProjectIds && selectedProjectIds.length > 0) {
-          filter.projectIds = [...selectedProjectIds];
-        }
-        filterContext = filter;
-
-        let router: EngineRouter | null = null;
-        try {
-          router = typeof EngineRouter !== 'undefined' ? EngineRouter.getInstance() : null;
-        } catch (engineErr) {
-          console.error('[ReportBillingCard] Failed to get EngineRouter instance:', {
-            filter: filterContext,
-            nowIso,
-            error: engineErr,
-          });
-          if (!isCancelled) {
-            setInternalError(t('BillingCalculationError'));
-          }
-          return;
-        }
-
-        if (!router?.billing?.calculateRangeBilling) {
-          return;
-        }
-
-        const res = await router.billing.calculateRangeBilling(filter, nowIso);
-        if (!isCancelled) {
-          setInternalResult(res);
-        }
-      } catch (err) {
-        console.error('[ReportBillingCard] Billing calculation failed:', {
-          filter: filterContext ?? {
-            reportPeriod,
-            customFrom,
-            customTo,
-            includePatches: sysSettings?.includePatchesInReports ?? false,
-          },
-          nowIso,
-          error: err,
-        });
-        if (!isCancelled) {
-          setInternalError(t('BillingCalculationError'));
-        }
-      } finally {
-        if (!isCancelled) {
-          setInternalLoading(false);
-        }
-      }
-    };
-
-    fetchBilling();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [
-    isControlled,
-    reportPeriod,
-    customFrom,
-    customTo,
-    nowIso,
-    selectedProjectIds,
-    sysSettings,
-    t,
-  ]);
 
   if (billingError) {
     return (
