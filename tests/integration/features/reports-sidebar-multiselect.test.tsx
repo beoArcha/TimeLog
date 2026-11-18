@@ -7,7 +7,7 @@ import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 import { getMockOXyFlowState, setupMatchMediaMock } from '@tests/shared/test-helpers';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
-import { ReportScopeProvider } from '@features/reports/context';
+import { useReportProjectScope } from '@features/reports/hooks/useReportProjectScope';
 
 const mockSharedProps = {
   isCompactExpanded: false,
@@ -77,6 +77,7 @@ describe('Given Reports is active in Full layout', () => {
     onWorkingProjectChange?: (id: string | null) => void;
   }) {
     const mockState = getMockOXyFlowState();
+    const scope = useReportProjectScope(projects);
     const [selectedProject, setSelectedProject] = useState<string | null>(initialWorkingProject);
 
     const handleSelectProject = (id: string | null) => {
@@ -98,13 +99,12 @@ describe('Given Reports is active in Full layout', () => {
       activeView: initialTab,
       selectedProjectId: selectedProject,
       setSelectedProjectId: handleSelectProject,
+      ...scope,
     } as unknown as GuiState;
 
     return (
       <MockProviders state={{ ...mockState, projects }}>
-        <ReportScopeProvider projects={projects}>
-          <FullLayoutBuilder state={stateProp} {...mockSharedProps} />
-        </ReportScopeProvider>
+        <FullLayoutBuilder state={stateProp} {...mockSharedProps} />
       </MockProviders>
     );
   }
@@ -206,6 +206,7 @@ describe('Given Tasks is active in Full layout', () => {
       const mockState = getMockOXyFlowState();
 
       function TasksHarness() {
+        const scope = useReportProjectScope(projects);
         const [selectedProjectId, setSelectedProjectId] = useState<string | null>('p1');
         const handleSelect = (id: string | null) => {
           setSelectedProjectId(id);
@@ -222,13 +223,12 @@ describe('Given Tasks is active in Full layout', () => {
           activeView: 'tasks',
           selectedProjectId,
           setSelectedProjectId: handleSelect,
+          ...scope,
         } as unknown as GuiState;
 
         return (
           <MockProviders state={{ ...mockState, projects }}>
-            <ReportScopeProvider projects={projects}>
-              <FullLayoutBuilder state={stateProp} {...mockSharedProps} />
-            </ReportScopeProvider>
+            <FullLayoutBuilder state={stateProp} {...mockSharedProps} />
           </MockProviders>
         );
       }

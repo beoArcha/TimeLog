@@ -11,7 +11,6 @@ import { SidebarHeader } from './sidebar/SidebarHeader';
 import { SidebarProjectForm } from './sidebar/SidebarProjectForm';
 import { SidebarProjectItem } from './sidebar/SidebarProjectItem';
 import { Area } from '@components/ui/area';
-import { useReportScopeSafe } from '@features/reports/context/ReportScopeContext';
 
 function resolveIsSelected(
   projectId: string,
@@ -30,39 +29,22 @@ export default function Sidebar({ state }: { state: GuiState }) {
     projects, metrics, locale, customTranslations,
     onAddProject, onUpdateProject, selectedProjectId, setSelectedProjectId,
     onRenameProject, onToggleProjectArchive, isLoading, activeLog, tasks,
-    toggleReportProject, clearReportProjects,
+    reportProjectIds, toggleReportProject, clearReportProjects,
   } = state;
 
   const isReportsActive = state.activeLargeTab === 'reports' || state.activeView === 'reports';
-  const reportScope = useReportScopeSafe();
-  const activeReportProjectIds = reportScope?.reportProjectIds ?? state.reportProjectIds ?? [];
-
-  const isAllSelected = reportScope
-    ? reportScope.isAllSelected
-    : activeReportProjectIds.length === 0;
+  const isAllSelected = reportProjectIds.length === 0;
 
   const handleSelectProject = React.useCallback(
     (projectId: string) => {
       if (isReportsActive) {
-        if (reportScope) {
-          reportScope.toggleReportProject(projectId);
-        } else if (toggleReportProject) {
-          toggleReportProject(projectId);
-        }
+        toggleReportProject(projectId);
       } else {
         setSelectedProjectId(projectId);
       }
     },
-    [isReportsActive, reportScope, toggleReportProject, setSelectedProjectId]
+    [isReportsActive, toggleReportProject, setSelectedProjectId]
   );
-
-  const handleResetScope = React.useCallback(() => {
-    if (reportScope) {
-      reportScope.clearReportProjects();
-    } else if (clearReportProjects) {
-      clearReportProjects();
-    }
-  }, [reportScope, clearReportProjects]);
 
   const { handleDeleteProject } = useProjects();
   const { orderedProjects, moveProject, isFirst, isLast } = useProjectReorder({ projects });
@@ -103,7 +85,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
           customTranslations={customTranslations}
           isReportsActive={isReportsActive}
           isAllSelected={isAllSelected}
-          onResetScope={handleResetScope}
+          onResetScope={clearReportProjects}
         />
 
         <SidebarProjectForm
@@ -126,7 +108,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 p.id,
                 isReportsActive,
                 selectedProjectId,
-                activeReportProjectIds
+                reportProjectIds
               );
 
               return (

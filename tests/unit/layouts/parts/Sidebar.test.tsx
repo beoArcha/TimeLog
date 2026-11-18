@@ -37,6 +37,9 @@ function createMockGuiState(overrides: Partial<GuiState> = {}): GuiState {
     onStopTimer: vi.fn(),
     setHolidays: vi.fn(),
     selectedTaskId: null,
+    reportProjectIds: [],
+    toggleReportProject: vi.fn(),
+    clearReportProjects: vi.fn(),
     ...overrides,
   } as unknown as GuiState;
 }

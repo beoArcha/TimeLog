@@ -4,7 +4,6 @@ import { SettingsProvider } from '@common/hooks/SettingsProvider';
 import { DataProvider } from '@common/hooks/DataProvider';
 import { WindowShellProvider } from '@common/contexts/WindowShellProvider';
 import { CliSessionProvider } from '@features/cli/context/CliSessionProvider';
-import { ReportScopeProvider } from '@features/reports/context';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -17,9 +16,7 @@ export default function AppProviders({ children }: AppProvidersProps) {
         <DataProvider>
           <WindowShellProvider>
             <CliSessionProvider>
-              <ReportScopeProvider>
-                {children}
-              </ReportScopeProvider>
+              {children}
             </CliSessionProvider>
           </WindowShellProvider>
         </DataProvider>

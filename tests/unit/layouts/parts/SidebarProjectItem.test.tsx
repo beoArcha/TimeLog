@@ -264,4 +264,29 @@ describe('SidebarProjectItem', () => {
 
     expect(handleDeleteProject).toHaveBeenCalledWith('p-1');
   });
+
+  it('should keep a typed space and not call onSelect when typing in the inline rename input', () => {
+    // Arrange
+    const onSelect = vi.fn();
+    const project = createBaseProject();
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectItem
+          {...defaultProps}
+          project={project}
+          onSelect={onSelect}
+          isEditingInline
+          inlineEditName="My Project"
+        />
+      </MockProviders>
+    );
+    const input = container.querySelector('input') as HTMLInputElement;
+
+    // Act
+    const notPrevented = fireEvent.keyDown(input, { key: ' ' });
+
+    // Assert
+    expect(notPrevented).toBe(true);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
 });

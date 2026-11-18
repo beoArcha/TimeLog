@@ -29,7 +29,6 @@ import ReportLogList from './components/ReportLogList';
 import ReportExportModal from './components/ReportExportModal';
 import { useReportStatistics } from './hooks/useReportStatistics';
 import { extractAvailableTags } from './utils/tagFiltering';
-import { useReportScopeSafe } from './context/ReportScopeContext';
 
 export default function ReportView({ state }: { state: GuiState }) {
   const {
@@ -37,12 +36,8 @@ export default function ReportView({ state }: { state: GuiState }) {
     reportPeriod, setReportPeriod, reportSort, setReportSort,
     customFrom, setCustomFrom, customTo, setCustomTo,
     sysSettings, patches,
+    reportProjectIds, toggleReportProject, clearReportProjects,
   } = state;
-
-  const reportScope = useReportScopeSafe();
-  const reportProjectIds = reportScope?.reportProjectIds ?? state.reportProjectIds ?? [];
-  const toggleReportProject = reportScope?.toggleReportProject ?? state.toggleReportProject;
-  const clearReportProjects = reportScope?.clearReportProjects ?? state.clearReportProjects;
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);

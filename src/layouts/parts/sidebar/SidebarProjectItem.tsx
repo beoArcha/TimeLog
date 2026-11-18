@@ -128,10 +128,9 @@ export function SidebarProjectItem({
       data-archived={project.archived ? 'true' : 'false'}
       role={isReportsActive ? 'button' : undefined}
       aria-pressed={isReportsActive ? isSelected : undefined}
-      aria-selected={isSelected}
-      aria-label={project.name}
       onClick={() => onSelect(project.id)}
       onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onSelect(project.id);
@@ -146,7 +145,7 @@ export function SidebarProjectItem({
       <HStack gap="sm" align="start" className="z-10 animate-fade-in min-w-0 flex-1 mr-2 gap-2.5">
         {isReportsActive && isSelected && (
           <Check
-            className="w-4 h-4 text-primary shrink-0 mt-1"
+            className="icon-small text-primary shrink-0 mt-1"
             data-testid={`project-selected-check-${project.id}`}
             aria-hidden="true"
           />
