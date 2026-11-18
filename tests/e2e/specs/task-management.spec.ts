@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/test-fixtures';
-import { createMockProject, createMockTask } from '../utils/state-seeder';
+import { createMockProject, createMockTask, createMockTimeLog } from '../utils/state-seeder';
 import { TEST_IDS, TEST_NAMES, TEST_COLORS, TEST_DATES } from '../constants/test-constants';
 
 test.describe('Task and Subtask Management Workflows (E2E)', () => {
@@ -29,7 +29,7 @@ test.describe('Task and Subtask Management Workflows (E2E)', () => {
     });
 
     await mainPage.selectProject(TEST_NAMES.PROJECT_COMPLETION);
-    const taskCard = mainPage.page.locator(`#root-task-card-${TEST_IDS.TASK_COMPLETION}`);
+    const taskCard = mainPage.rootTaskCard(TEST_IDS.TASK_COMPLETION);
     await expect(taskCard).toBeVisible();
 
     await mainPage.toggleTaskComplete(TEST_IDS.TASK_COMPLETION);
@@ -95,10 +95,11 @@ test.describe('Task and Subtask Management Workflows (E2E)', () => {
     });
 
     await mainPage.selectProject(TEST_NAMES.PROJECT_DELETION);
-    const taskCard = mainPage.page.locator(`#root-task-card-${TEST_IDS.TASK_DELETION}`);
+    const taskCard = mainPage.rootTaskCard(TEST_IDS.TASK_DELETION);
     await expect(taskCard).toBeVisible();
 
     await mainPage.deleteTask(TEST_IDS.TASK_DELETION);
+    await mainPage.confirmDialog();
     await expect(taskCard).toBeHidden();
   });
 
@@ -111,14 +112,31 @@ test.describe('Task and Subtask Management Workflows (E2E)', () => {
       archived: false,
     });
 
+    const mockTask = createMockTask({
+      id: 'task-arch-104',
+      projectId: TEST_IDS.PROJECT_ARCHIVE,
+      name: 'Task With Recorded Time',
+      createdAt: TEST_DATES.STATIC_TIMESTAMP,
+      completed: false,
+      status: 'Todo',
+    });
+
+    const mockLog = createMockTimeLog({
+      id: 'log-arch-104',
+      projectId: TEST_IDS.PROJECT_ARCHIVE,
+      taskId: 'task-arch-104',
+      startTime: TEST_DATES.LOG_START,
+      endTime: TEST_DATES.LOG_END,
+    });
+
     await mainPage.seedStorage({
       projects: [mockProject],
-      tasks: [],
-      logs: [],
+      tasks: [mockTask],
+      logs: [mockLog],
       activeLog: null,
     });
 
-    const projectItem = mainPage.page.locator(`#project-item-${TEST_IDS.PROJECT_ARCHIVE}`);
+    const projectItem = mainPage.projectItem(TEST_IDS.PROJECT_ARCHIVE);
     await expect(projectItem).toBeVisible();
     await expect(projectItem).toHaveAttribute('data-archived', 'false');
 
