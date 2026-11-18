@@ -3,7 +3,6 @@ import { BasePage } from "../pages/BasePage";
 import { MainLayoutPage } from "../pages/MainLayoutPage";
 import { ReportsPage } from "../pages/ReportsPage";
 import { SettingsPage } from "../pages/SettingsPage";
-import { CompactWidgetPage } from "../pages/CompactWidgetPage";
 import { MediumLayoutPage } from "../pages/MediumLayoutPage";
 import { CliDrawerPage } from "../pages/CliDrawerPage";
 
@@ -11,7 +10,6 @@ type MyFixtures = {
   mainPage: MainLayoutPage;
   reportsPage: ReportsPage;
   settingsPage: SettingsPage;
-  compactPage: CompactWidgetPage;
   mediumPage: MediumLayoutPage;
   cliDrawerPage: CliDrawerPage;
 };
@@ -39,7 +37,6 @@ export const test = base.extend<MyFixtures>({
   mainPage: createPageFixture(MainLayoutPage),
   reportsPage: createPageFixture(ReportsPage),
   settingsPage: createPageFixture(SettingsPage),
-  compactPage: createPageFixture(CompactWidgetPage),
   mediumPage: createPageFixture(MediumLayoutPage),
   cliDrawerPage: createPageFixture(CliDrawerPage),
 });
