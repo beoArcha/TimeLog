@@ -4,6 +4,7 @@ import { Project } from '@bindings/Project';
 import { TaskComputedMetrics } from '@bindings/TaskComputedMetrics';
 import { ProjectComputedMetrics } from '@bindings/ProjectComputedMetrics';
 import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
+import { createProjectAttribution } from './projectAttribution';
 
 interface LogMetricsAggregation {
   taskSelfElapsed: Record<string, number>;
@@ -26,7 +27,7 @@ function aggregateLogMetrics(
   todayStartMs: number,
   weekStartMs: number
 ): LogMetricsAggregation {
-  const taskMap = new Map<string, Task>(tasks.map((t) => [t.id, t]));
+  const resolveProjectId = createProjectAttribution(tasks);
   const taskSelfElapsed: Record<string, number> = {};
   const taskIsRunning: Record<string, boolean> = {};
   const projectTotalElapsed: Record<string, number> = {};
@@ -43,7 +44,7 @@ function aggregateLogMetrics(
       const diffSecs = Math.max(0, Math.floor((endMs - startMs) / 1000));
       taskSelfElapsed[log.taskId] = (taskSelfElapsed[log.taskId] || 0) + diffSecs;
 
-      const effectiveProjectId = taskMap.get(log.taskId)?.projectId ?? log.projectId;
+      const effectiveProjectId = resolveProjectId(log.taskId, log.projectId);
       projectTotalElapsed[effectiveProjectId] = (projectTotalElapsed[effectiveProjectId] || 0) + diffSecs;
 
       if (isActive) {

@@ -5,6 +5,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { PatchLog } from '@bindings/PatchLog';
 import { clampInterval } from './clamping';
+import { createProjectAttribution } from './projectAttribution';
 
 /**
  * Pure calculation: Evaluates window-clamped durations and segment metrics for a given date range.
@@ -21,7 +22,7 @@ export function calculateRangeMetrics(
   const rangeStart = filter.from ? new Date(filter.from).getTime() : -Infinity;
   const rangeEnd = filter.to ? new Date(filter.to).getTime() : Infinity;
 
-  const taskMap = new Map<string, Task>(tasks.map((t) => [t.id, t]));
+  const resolveProjectId = createProjectAttribution(tasks);
 
   let relevantTaskIds: Set<string> | null = null;
 
@@ -47,8 +48,7 @@ export function calculateRangeMetrics(
     if (relevantTaskIds && !relevantTaskIds.has(log.taskId)) {
       continue;
     }
-    const task = taskMap.get(log.taskId);
-    const effectiveProjectId = task?.projectId ?? log.projectId;
+    const effectiveProjectId = resolveProjectId(log.taskId, log.projectId);
 
     if (filter.projectId && effectiveProjectId !== filter.projectId) {
       continue;
@@ -82,8 +82,7 @@ export function calculateRangeMetrics(
 
   if (filter.includePatches && patches) {
     for (const patch of patches) {
-      const task = patch.taskId ? taskMap.get(patch.taskId) : undefined;
-      const effectiveProjectId = task?.projectId ?? patch.projectId;
+      const effectiveProjectId = resolveProjectId(patch.taskId, patch.projectId);
 
       if (filter.projectId && effectiveProjectId !== filter.projectId) {
         continue;

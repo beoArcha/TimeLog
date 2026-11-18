@@ -358,3 +358,101 @@ fn test_engine_calculate_range_metrics_when_task_moved_to_different_project() {
     assert_eq!(res_orig.total_seconds, 0);
     assert_eq!(res_orig.clamped_logs.len(), 0);
 }
+
+fn seed_project(persistence: &Persistence, id: &str) {
+    let project = ProjectBuilder::new()
+        .with_id(id)
+        .with_name(id)
+        .with_created_at("2026-06-15T00:00:00Z")
+        .build();
+    persistence.projects.create(project).unwrap();
+}
+
+fn patch_for(id: &str, project_id: &str, task_id: Option<&str>) -> PatchLog {
+    PatchLog {
+        id: id.to_string(),
+        project_id: project_id.to_string(),
+        task_id: task_id.map(str::to_string),
+        start_time: "2026-06-15T08:00:00Z".to_string(),
+        end_time: "2026-06-15T09:00:00Z".to_string(),
+        patch_note: "Manual time adjustment".to_string(),
+        is_system_event: Some(false),
+    }
+}
+
+fn day_filter(project_id: Option<&str>, project_ids: Option<Vec<&str>>) -> ElapsedRangeFilter {
+    ElapsedRangeFilter {
+        task_id: None,
+        project_id: project_id.map(str::to_string),
+        project_ids: project_ids.map(|ids| ids.into_iter().map(str::to_string).collect()),
+        from: Some("2026-06-15T00:00:00Z".to_string()),
+        to: Some("2026-06-15T23:59:59Z".to_string()),
+        include_patches: Some(true),
+    }
+}
+
+#[test]
+fn test_given_patch_stored_under_old_project_when_its_task_moved_then_range_metrics_follow_the_task(
+) {
+    // Arrange
+    let (_conn, config, _temp_dir) = setup_persistence_test("engine_range_patch_task_moved");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+    seed_project(&persistence, "p_old");
+    seed_project(&persistence, "p_new");
+    let task = TaskBuilder::new()
+        .with_id("t_moved")
+        .with_project_id("p_new")
+        .with_created_at("2026-06-15T00:00:00Z")
+        .build();
+    persistence.tasks.create(task).unwrap();
+    persistence
+        .patches
+        .save(vec![patch_for("pa_moved", "p_old", Some("t_moved"))])
+        .unwrap();
+
+    // Act
+    let under_new = engine
+        .calculate_range_metrics(&day_filter(Some("p_new"), None), None)
+        .unwrap();
+    let under_old = engine
+        .calculate_range_metrics(&day_filter(Some("p_old"), None), None)
+        .unwrap();
+    let under_either = engine
+        .calculate_range_metrics(&day_filter(None, Some(vec!["p_old", "p_new"])), None)
+        .unwrap();
+
+    // Assert
+    assert_eq!(under_new.project_elapsed.get("p_new"), Some(&3600));
+    assert_eq!(under_new.clamped_logs[0].project_id, "p_new");
+    assert_eq!(under_old.total_seconds, 0);
+    assert_eq!(under_either.project_elapsed.get("p_new"), Some(&3600));
+    assert_eq!(under_either.project_elapsed.get("p_old"), None);
+}
+
+#[test]
+fn test_given_patch_without_resolvable_task_when_calculating_range_metrics_then_it_keeps_its_own_project(
+) {
+    // Arrange
+    let (_conn, config, _temp_dir) = setup_persistence_test("engine_range_patch_task_missing");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+    seed_project(&persistence, "p_a");
+    seed_project(&persistence, "p_b");
+    persistence
+        .patches
+        .save(vec![
+            patch_for("pa_gone", "p_a", Some("t_gone")),
+            patch_for("pa_free", "p_b", None),
+        ])
+        .unwrap();
+
+    // Act
+    let result = engine
+        .calculate_range_metrics(&day_filter(None, None), None)
+        .unwrap();
+
+    // Assert
+    assert_eq!(result.project_elapsed.get("p_a"), Some(&3600));
+    assert_eq!(result.project_elapsed.get("p_b"), Some(&3600));
+}

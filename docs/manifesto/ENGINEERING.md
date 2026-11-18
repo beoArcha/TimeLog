@@ -77,6 +77,8 @@ Rust is the reference implementation; the browser `EnginePlugin` must behave ide
 
 Date-range resolution (presets and custom bounds on the local calendar of an IANA timezone, half-open `[from, to)` UTC output) lives in `engine/range.rs` (Rust) and `src/common/engine/range/` (TypeScript, platform `Intl` only). Parity is enforced by the shared vectors in `tests/fixtures/range-parity-vectors.json`, which `parity_vectors_test.rs` and `tests/integration/engine/RangeParity.integration.test.ts` both execute. The browser report engine and the sandbox period flags use the TypeScript implementation; the GUI report views do not use it yet.
 
+Project attribution is one rule across range metrics, computed metrics, reports and billing: an interval belongs to the project of its task, and the interval's own `project_id` is used only when its task cannot be found. Moving a task therefore re-homes its logs and patches in every engine and in both runtimes. Native time logs carry no stored project (the repository derives it from the task by join), so only patches and the browser snapshot can disagree with their task; the shared vectors in `tests/fixtures/range-metrics-parity-vectors.json` pin the rule, executed by `range_metrics_parity_test.rs` and `tests/integration/engine/RangeMetricsParity.integration.test.ts`.
+
 ### Canonical Report Model (`ReportDocument`)
 
 Every report is built once, as the versioned `ReportDocument` (`schema: "oxy.report"`, `schemaVersion: 2`, `src-tauri/src/types/report.rs`, generated into `src/bindings/ReportDocument.ts`). Exporters and renderers are projections of this document; they never query storage or recompute figures (enforced by the `exporter_isolation` architecture tests in Rust and TypeScript).
