@@ -459,8 +459,8 @@ The phases follow the logical order of the work, not strictly the delivery order
 
 #### Group A — Test Baseline
 
-- [ ] **Stale Layout Spec** ([FLOW-29](../reviews/ui-ux-flow-audit-2026-11/README.md#follow-ups-found-during-flow-05-review)): `main-layout.spec.ts` expects the `db` tab, which the browser runtime hides. Fixed first so that the e2e suite is a reliable gate for the rest of the program.
-- [ ] **Local Test Robustness** ([CLIX-50](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): The full Vitest run passes locally next to a cargo build without raised timeouts, so the local suites are as reliable a gate as CI. Closes [ARC-11](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-11-p3-local-full-vitest-run-times-out-under-parallel-cargo-load).
+- [x] **Stale Layout Spec** ([FLOW-29](../reviews/ui-ux-flow-audit-2026-11/README.md#follow-ups-found-during-flow-05-review)): `main-layout.spec.ts` expects the `db` tab, which the browser runtime hides. Fixed first so that the e2e suite is a reliable gate for the rest of the program. The full Playwright suite passes locally: specs follow the browser runtime's capabilities (no DB explorer, no Compact layout), and the CLI drawer, task management and layout geometry specs were repaired.
+- [x] **Local Test Robustness** ([CLIX-50](../reviews/cli-review-2026-11/README.md#phase-23---correct-data-and-safety)): The full Vitest run passes locally next to a cargo build without raised timeouts, so the local suites are as reliable a gate as CI. Closes [ARC-11](../reviews/cli-review-2026-11/findings-architecture-and-tests.md#arc-11-p3-local-full-vitest-run-times-out-under-parallel-cargo-load).
 
 #### Group B — Report Data Correctness
 
@@ -624,6 +624,7 @@ OD-10 decides whether CLIX-37 and CLIX-40 patch the sandbox mirrors or pull the 
 
 - [ ] **Sandbox Metrics** ([CLIX-37](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): Today, week and subtask totals are correct. Closes [SBX-04](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-04-p2-sandbox-metrics-today-and-this-week-totals-equal-all-time-task-totals-exclude-subtasks). *Needs OD-10.*
 - [ ] **Help and Legacy Commands** ([CLIX-39](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): In-app help reflects the active backend; the legacy browser commands use the user's zone for "today", fail `stop all` on idle and show full log dates. Closes [SBX-08](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-08-p2-desktop-in-app-help-lists-legacy-commands-that-the-native-parser-rejects), [SBX-10](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-10-p2-legacy-browser-commands-utc-today-stop-all-succeeds-on-idle-truncated-log-dates).
+- [ ] **Failed Timer Commands Report the Failure**: In live mode, `start`, `stop` and `switch` print their success line even when the Engine rejects the operation, because the UI action runner swallows the error. The in-app terminal reports the Engine error instead. Found while fixing the in-app `switch` race (PR #155).
 - [ ] **Mirrored Messages** ([CLIX-40](../reviews/cli-review-2026-11/README.md#phase-27---in-app-cli-and-sandbox-parity)): Sandbox flow messages use the native constants after CLIX-17, and one table renderer draws the sandbox lists. Closes [SBX-07](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-07-p2-human-text-diverges-from-the-native-binary-for-every-flow-command), [SBX-12](../reviews/cli-review-2026-11/findings-in-app-cli-and-parity.md#sbx-12-p3-sandbox-project-list-footer-has-four-columns-the-header-three). *Needs OD-10.*
 
 #### Group C — Parity Proof & Layering
