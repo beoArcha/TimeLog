@@ -34,6 +34,9 @@ export class MainLayoutPage extends BasePage {
   readonly layoutMain: Locator;
   readonly layoutFooter: Locator;
 
+  readonly confirmDialogConfirmBtn: Locator;
+  readonly confirmDialogCancelBtn: Locator;
+
   constructor(page: Page) {
     super(page);
 
@@ -72,10 +75,18 @@ export class MainLayoutPage extends BasePage {
     this.newTaskInput = page.locator('#new-task-input');
     this.addTaskBtn = page.locator('#add-task-btn');
     this.tasksTreeContainer = page.locator('#tasks-tree-container');
+
+    // Confirm Dialog
+    this.confirmDialogConfirmBtn = page.locator('[data-testid="confirm-dialog-confirm-btn"]');
+    this.confirmDialogCancelBtn = page.locator('[data-testid="confirm-dialog-cancel-btn"]');
   }
 
   rootTaskCard(taskId: string): Locator {
     return this.page.locator(`#root-task-card-${taskId}`);
+  }
+
+  projectItem(projectId: string): Locator {
+    return this.page.locator(`#project-item-${projectId}`);
   }
 
   async getElementContentMetrics(locator: Locator) {
@@ -155,6 +166,10 @@ export class MainLayoutPage extends BasePage {
   }
 
   async deleteTask(taskId: string) {
+    const card = this.rootTaskCard(taskId);
+    if (await card.isVisible()) {
+      await card.hover();
+    }
     await this.page.locator(`#delete-task-btn-${taskId}`).click();
   }
 
@@ -184,13 +199,29 @@ export class MainLayoutPage extends BasePage {
   }
 
   async toggleProjectArchive(projectId: string) {
+    const item = this.projectItem(projectId);
+    if (await item.isVisible()) {
+      await item.hover();
+    }
     await this.page.locator(`#archive-project-btn-${projectId}`).click();
   }
 
   async editProjectName(projectId: string, newName: string) {
+    const item = this.projectItem(projectId);
+    if (await item.isVisible()) {
+      await item.hover();
+    }
     await this.page.locator(`#edit-project-btn-${projectId}`).click();
     const modalInput = this.page.locator('#edit-project-name-input');
     await modalInput.fill(newName);
     await this.page.locator('#save-edit-project-btn').click();
+  }
+
+  async confirmDialog() {
+    await this.confirmDialogConfirmBtn.click();
+  }
+
+  async cancelDialog() {
+    await this.confirmDialogCancelBtn.click();
   }
 }
