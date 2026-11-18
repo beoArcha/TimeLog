@@ -29,7 +29,6 @@ permissions:
   checks: write
 
 env:
-  RUST_WORKSPACE: "src-tauri -> target"
   # Disabling debug symbol generation reduces linker memory and build duration in CI
   CARGO_PROFILE_DEV_DEBUG: 0
 
@@ -40,7 +39,7 @@ jobs:
   lint-rust:
     name: Lint (Rust)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +50,7 @@ jobs:
         with:
           components: rustfmt, clippy
           install-linux-deps: "true"
+          cache-save-if: "false"
 
       - name: Check formatting
         shell: bash
@@ -59,12 +59,6 @@ jobs:
       - name: Run Clippy
         shell: bash
         run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
-
-      # Builds the test targets so the saved `tauri-ci` cache also serves PR `cargo test` runs.
-      - name: Build Rust Test Targets (cache warm-up)
-        if: github.ref == 'refs/heads/main'
-        shell: bash
-        run: cargo test --manifest-path src-tauri/Cargo.toml --no-run
 
   # ──────────────────────────────────────────────
   # Typecheck
@@ -149,6 +143,32 @@ jobs:
           coverage: "true"
 
   # ──────────────────────────────────────────────
+  # Rust cache seeding for pull requests
+  # ──────────────────────────────────────────────
+  warm-rust-cache:
+    name: Warm Rust Cache
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: clippy
+          install-linux-deps: "true"
+          cache-save-if: "true"
+
+      - name: Build Clippy Artifacts
+        shell: bash
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+
+      - name: Build Rust Test Targets
+        shell: bash
+        run: cargo test --manifest-path src-tauri/Cargo.toml --no-run
+
+  # ──────────────────────────────────────────────
   # Rust unit tests + coverage
   # ──────────────────────────────────────────────
   test-rust-unit:
@@ -165,7 +185,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
         with:
           install-linux-deps: "true"
-          cache-save-if: "false"
+          shared-key: tauri-coverage
 
       - name: Run Rust Unit Tests
         uses: ./.github/actions/test-rust
@@ -191,7 +211,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
         with:
           install-linux-deps: "true"
-          cache-save-if: "false"
+          shared-key: tauri-coverage
 
       - name: Run Rust Integration Tests
         uses: ./.github/actions/test-rust

@@ -30,6 +30,10 @@ inputs:
     description: Swatinem/rust-cache shared key; jobs with the same key, toolchain and CARGO_*/RUST* env share one cache
     required: false
     default: "tauri-ci"
+  cache-on-failure:
+    description: Save the Rust build cache even when the job fails, so a retry reuses compiled dependencies
+    required: false
+    default: "false"
   cache-save-if:
     description: Whether the Rust build cache is saved after the job. Defaults to main-branch runs only so PRs restore but never write caches.
     required: false
@@ -50,6 +54,7 @@ runs:
         workspaces: ${{ inputs.workspaces }}
         shared-key: ${{ inputs.shared-key }}
         save-if: ${{ inputs.cache-save-if }}
+        cache-on-failure: ${{ inputs.cache-on-failure }}
 
     # The runner image ships stale package indexes; without a refresh the installer 404s on superseded .deb versions.
     - name: Refresh APT Index

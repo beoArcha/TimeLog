@@ -34,7 +34,6 @@ jobs:
 
     env:
       APP_VERSION: ${{ inputs.version }}
-      RUST_WORKSPACE: "src-tauri"
 
     steps:
       - uses: actions/checkout@v4
@@ -50,6 +49,7 @@ jobs:
           install-bundling-deps: ${{ matrix.platform == 'ubuntu-22.04' && 'true' || 'false' }}
           shared-key: tauri-bundle
           cache-save-if: "true"
+          cache-on-failure: "true"
 
       - name: Pre-build Universal CLI Binary (macOS)
         if: matrix.platform == 'macos-latest'
