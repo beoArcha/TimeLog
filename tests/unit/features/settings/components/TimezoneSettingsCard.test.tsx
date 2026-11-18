@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import TimezoneSettingsCard from '@features/settings/components/TimezoneSettingsCard';
+import { translate } from '@common/i18n/translator';
 
 describe('TimezoneSettingsCard', () => {
   beforeAll(() => {
@@ -29,6 +30,8 @@ describe('TimezoneSettingsCard', () => {
   it('should render title and system default label when timezone is system', () => {
     // Arrange
     const setTimezone = vi.fn();
+    const title = translate('en', 'settings', 'TimezoneTitle');
+    const systemLabel = translate('en', 'settings', 'TimezoneSystem');
 
     // Act
     render(
@@ -43,8 +46,8 @@ describe('TimezoneSettingsCard', () => {
     // Assert
     const header = screen.getByTestId('timezone-settings-card-header');
     const trigger = screen.getByTestId('timezone-select-trigger');
-    expect(header).not.toBeNull();
-    expect(trigger.textContent).toContain('System default');
+    expect(header.textContent).toContain(title);
+    expect(trigger.textContent).toContain(systemLabel);
   });
 
   it('should display resolved active timezone badge and current selection when custom timezone is provided', () => {
@@ -62,14 +65,15 @@ describe('TimezoneSettingsCard', () => {
     );
 
     // Assert
-    const trigger = screen.getByTestId('timezone-select-trigger');
-    expect(trigger).toBeDefined();
-    expect(trigger.textContent).toContain('America/New_York');
+    expect(screen.getAllByText('America/New_York').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByTestId('timezone-select-trigger').textContent).toContain('America/New_York');
   });
 
   it('should render translated system label in Polish (pl) in both header text and select trigger', () => {
     // Arrange
     const setTimezone = vi.fn();
+    const title = translate('pl', 'settings', 'TimezoneTitle');
+    const systemLabel = translate('pl', 'settings', 'TimezoneSystem');
 
     // Act
     render(
@@ -82,15 +86,15 @@ describe('TimezoneSettingsCard', () => {
     );
 
     // Assert
-    const header = screen.getByTestId('timezone-settings-card-header');
-    const trigger = screen.getByTestId('timezone-select-trigger');
-    expect(header).toBeDefined();
-    expect(trigger.textContent).toContain('Domyślna systemu');
+    expect(screen.getByTestId('timezone-settings-card-header').textContent).toContain(title);
+    expect(screen.getByTestId('timezone-select-trigger').textContent).toContain(systemLabel);
   });
 
   it('should render translated system label in German (de) in both header text and select trigger', () => {
     // Arrange
     const setTimezone = vi.fn();
+    const title = translate('de', 'settings', 'TimezoneTitle');
+    const systemLabel = translate('de', 'settings', 'TimezoneSystem');
 
     // Act
     render(
@@ -103,15 +107,14 @@ describe('TimezoneSettingsCard', () => {
     );
 
     // Assert
-    const header = screen.getByTestId('timezone-settings-card-header');
-    const trigger = screen.getByTestId('timezone-select-trigger');
-    expect(header).toBeDefined();
-    expect(trigger.textContent).toContain('Systemstandard');
+    expect(screen.getByTestId('timezone-settings-card-header').textContent).toContain(title);
+    expect(screen.getByTestId('timezone-select-trigger').textContent).toContain(systemLabel);
   });
 
   it('should conform to accessibility (a11y) standards for combobox and decorative icons', () => {
     // Arrange
     const setTimezone = vi.fn();
+    const selectAriaLabel = translate('en', 'settings', 'TimezoneSelectAria');
 
     // Act
     const { container } = render(
@@ -126,7 +129,7 @@ describe('TimezoneSettingsCard', () => {
     // Assert
     const trigger = screen.getByTestId('timezone-select-trigger');
     expect(trigger.getAttribute('role')).toBe('combobox');
-    expect(trigger.getAttribute('aria-label')).toBe('Select timezone');
+    expect(trigger.getAttribute('aria-label')).toBe(selectAriaLabel);
 
     // Decorative clock icon must have aria-hidden="true" and use semantic text-info class
     const clockIcon = container.querySelector('svg.lucide-clock');
@@ -135,12 +138,11 @@ describe('TimezoneSettingsCard', () => {
     expect(clockIcon?.getAttribute('class')).toContain('text-info');
   });
 
-  it('should handle real user interaction when opening select, choosing Asia/Tokyo and updating context', async () => {
+  it('should call setTimezone with Asia/Tokyo when the user picks it from the select', async () => {
     // Arrange
     const user = userEvent.setup({ delay: null });
     const setTimezone = vi.fn();
-
-    const { rerender } = render(
+    render(
       <MockProviders
         settingsState={{ timezone: 'System', resolvedTimezone: 'Europe/Warsaw', setTimezone }}
         localeState={{ locale: 'en', customTranslations: {} }}
@@ -149,18 +151,20 @@ describe('TimezoneSettingsCard', () => {
       </MockProviders>
     );
 
-    const trigger = screen.getByTestId('timezone-select-trigger');
-    expect(trigger.textContent).toContain('System default');
-
     // Act
-    await user.click(trigger);
-    const tokyoOption = await screen.findByTestId('timezone-option-Asia/Tokyo');
-    await user.click(tokyoOption);
+    await user.click(screen.getByTestId('timezone-select-trigger'));
+    await user.click(await screen.findByTestId('timezone-option-Asia/Tokyo'));
 
     // Assert
     expect(setTimezone).toHaveBeenCalledWith('Asia/Tokyo');
+  });
 
-    rerender(
+  it('should show Asia/Tokyo in the trigger when the context timezone is Asia/Tokyo', () => {
+    // Arrange
+    const setTimezone = vi.fn();
+
+    // Act
+    render(
       <MockProviders
         settingsState={{ timezone: 'Asia/Tokyo', resolvedTimezone: 'Asia/Tokyo', setTimezone }}
         localeState={{ locale: 'en', customTranslations: {} }}
@@ -169,7 +173,7 @@ describe('TimezoneSettingsCard', () => {
       </MockProviders>
     );
 
+    // Assert
     expect(screen.getByTestId('timezone-select-trigger').textContent).toContain('Asia/Tokyo');
   });
 });
-
