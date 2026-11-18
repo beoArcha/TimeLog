@@ -44,36 +44,36 @@ test.describe('CLI Terminal Workflow Journey (E2E)', () => {
 
     // 3. Execute help command and verify command listings
     await cliDrawerPage.runCommand('help');
-    await cliDrawerPage.expectOutputContains('AVAILABLE COMMANDS');
+    await cliDrawerPage.expectHelpListing();
 
-    // 4. Execute status command and verify output
-    await cliDrawerPage.runCommand('status');
-    await cliDrawerPage.expectOutputContains('STATUS');
-
-    // 5. Start timer on task 1 and verify reflection in main UI
+    // 4. Start timer on task 1 and verify reflection in main UI
     await cliDrawerPage.runCommand(`start ${TEST_IDS.TASK_ALPHA}`);
-    await cliDrawerPage.expectOutputContains(`Started timer for task: ${TEST_NAMES.TASK_ALPHA}`);
+    await cliDrawerPage.expectStartedOutput(TEST_NAMES.TASK_ALPHA);
     await expect(mainPage.activeTimerBanner).toBeVisible();
     await expect(mainPage.activeTimerBanner).toContainText(TEST_NAMES.TASK_ALPHA);
 
+    // 5. Execute status command and verify it reports the running task
+    await cliDrawerPage.runCommand('status');
+    await cliDrawerPage.expectStatusOutput(TEST_IDS.TASK_ALPHA);
+
     // 6. Atomically switch to task 2 via CLI switch command
     await cliDrawerPage.runCommand(`switch ${task2.id}`);
-    await cliDrawerPage.expectOutputContains(`Switched to task: ${task2.name}`);
+    await cliDrawerPage.expectSwitchedOutput(task2.name);
     await expect(mainPage.activeTimerBanner).toContainText(task2.name);
 
     // 7. Stop active timer via CLI stop command
     await cliDrawerPage.runCommand('stop');
-    await cliDrawerPage.expectOutputContains('Stopped');
+    await cliDrawerPage.expectStoppedOutput(task2.name);
     await expect(mainPage.idleTimerBanner).toBeVisible();
 
     // 8. Toggle sandbox emulator mode
+    const liveBadgeText = await cliDrawerPage.readModeBadgeText();
+
     await cliDrawerPage.runCommand('sandbox on');
-    await cliDrawerPage.expectOutputContains('Sandbox Emulator mode enabled');
-    await expect(cliDrawerPage.modeBadge).toContainText('SANDBOX EMULATOR');
+    await cliDrawerPage.expectModeBadgeChangedFrom(liveBadgeText);
 
     await cliDrawerPage.runCommand('sandbox off');
-    await cliDrawerPage.expectOutputContains('Sandbox Emulator mode disabled');
-    await expect(cliDrawerPage.modeBadge).toContainText('LIVE ENGINE');
+    await cliDrawerPage.expectModeBadgeEquals(liveBadgeText);
 
     // 9. Close drawer via close button and verify hidden
     await cliDrawerPage.closeDrawerViaBtn();
