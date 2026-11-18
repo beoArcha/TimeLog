@@ -12,6 +12,8 @@ pub enum RangePreset {
     LastWeek,
     Month,
     LastMonth,
+    Last30Days,
+    Year,
     All,
 }
 

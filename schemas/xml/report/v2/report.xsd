@@ -31,6 +31,8 @@
       <xs:enumeration value="lastWeek"/>
       <xs:enumeration value="month"/>
       <xs:enumeration value="lastMonth"/>
+      <xs:enumeration value="last30Days"/>
+      <xs:enumeration value="year"/>
       <xs:enumeration value="all"/>
     </xs:restriction>
   </xs:simpleType>

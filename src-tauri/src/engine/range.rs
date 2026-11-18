@@ -16,6 +16,9 @@ const DATE_SHAPE: &str = "NNNN-NN-NN";
 const NANOS_PER_SECOND: u32 = 1_000_000_000;
 // Real-world DST gaps are at most a couple of hours; a full day bounds the search without a panic path.
 const MAX_GAP_MINUTES: i64 = 24 * 60;
+// `last30Days` is the 30 local calendar days ending with today, so today is day 30 of the span.
+const LAST_30_DAYS_SPAN: i64 = 30;
+const MONTHS_PER_YEAR: i32 = 12;
 
 const MSG_PRESET_WITH_BOUNDS: &str = "preset cannot be combined with from/to";
 const MSG_UNPARSEABLE_BOUND: &str = "unrecognized date/time value";
@@ -134,6 +137,7 @@ fn preset_days(
 ) -> Result<Option<(NaiveDate, NaiveDate)>, EngineError> {
     let week_start = shift_days(today, -i64::from(today.weekday().num_days_from_monday()))?;
     let month_start = today.with_day(1).ok_or_else(out_of_range)?;
+    let year_start = month_start.with_month(1).ok_or_else(out_of_range)?;
 
     let days = match preset {
         RangePreset::All => return Ok(None),
@@ -143,6 +147,11 @@ fn preset_days(
         RangePreset::LastWeek => (shift_days(week_start, -7)?, week_start),
         RangePreset::Month => (month_start, shift_months(month_start, 1)?),
         RangePreset::LastMonth => (shift_months(month_start, -1)?, month_start),
+        RangePreset::Last30Days => (
+            shift_days(today, 1 - LAST_30_DAYS_SPAN)?,
+            shift_days(today, 1)?,
+        ),
+        RangePreset::Year => (year_start, shift_months(year_start, MONTHS_PER_YEAR)?),
     };
     Ok(Some(days))
 }
