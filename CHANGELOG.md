@@ -11,11 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Report Data Correctness (Phase 23, Group B)**:
-  - Report periods are resolved on the local calendar of the user's timezone through the Engine's range resolution instead of UTC arithmetic, so a log made just after local midnight counts under "Today". Custom date ranges are local days and include the chosen last day.
-  - The daily average divides by real local days: the "All" period counts from the first entry in scope instead of using 1, and "Last 30 days" spans exactly 30 days.
-  - Range and computed metrics attribute time to the project of the entry's task in both engines (the entry's own project only when the task is missing), matching reports and billing; a patch on a moved task no longer stays under the old project natively. Pinned by `tests/fixtures/range-metrics-parity-vectors.json`.
-  - Billing has a single fetch path, so an empty project scope or an empty tag intersection gives the same result as the statistics cards.
 - **In-App CLI `switch` Keeps the Timer Running**: `switch <task>` in the in-app terminal now goes through the engine's atomic `switchTimer` via a new `handleSwitchTimer` in `DataContext`, instead of firing `stop` and `start` without awaiting them. Previously the terminal printed the success line while a stale state reload left no timer running.
 - **Reports Multi-Project Scope**: The report has its own project scope (empty means all projects) instead of reusing the Tasks tab's working project, so the "All" filter works and filtering a report no longer changes the project shown in Tasks. Filter chips and the donut chart toggle several projects at once; statistics, billing and log lists are filtered by the engine through `projectIds`, intersected with active tag filters.
 - **Idempotent `start` and Safe `stop`**: `oxy start` on a task that is already running is a no-op that reports the state instead of opening a second session, in both engines; `oxy stop --if-running` succeeds with nothing to stop on an idle timer.
@@ -135,8 +130,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Sidebar Multi-Select in Reports**: While Reports is active, project rows in the sidebar toggle the report scope (one or many projects) with a check mark and `aria-pressed`, and an "All" button resets the scope; in other tabs the sidebar keeps selecting the working project.
-- **`last30Days` and `year` Range Presets**: The Engine's timezone-aware range resolution (Rust and TypeScript, with parity vectors) supports the last 30 local days and the current calendar year; the report schemas v2 (JSON and XSD) accept both preset values.
 - **JSON Lines Report Export (`oxy report --format jsonl`)**: Streams the `oxy.report` v2 document as one compact JSON object per line: a `header` line with the document's header fields, then one `entry` line per entry in document order. The `summary` variant writes the header line only.
 - **Structured Error Details**: The error envelope carries an optional `details` object, so scripts can act on a failure without parsing text: `candidates` (`{ id, name }`) for ambiguous targets, `suggestion` for did-you-mean, and `field` / `value` for parser argument errors. Absent members and an empty `details` are omitted. The browser sandbox emits the same envelope for target-resolution errors under `--json` / `--machine`.
 - **Canonical Report Model (`ReportDocument` v2)**:
@@ -227,6 +220,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Extracted reusable project fields for name, emoji, color, description, tags, rates, and concurrency across project creation and editing surfaces.
   - Adopted semantic Area, HStack, VStack, and InlineCluster primitives in layout composition.
   - Simplified DbExplorer table selection and rendering, and localized connection/daemon status labels across all six locales.
+
+---
+
+## [1.14.7] - 2026-11-18
+
+### Added in 1.14.7
+
+- **Sidebar Multi-Select in Reports**: While Reports is active, project rows in the sidebar toggle the report scope (one or many projects) with a check mark and `aria-pressed`, and an "All" button resets the scope; in other tabs the sidebar keeps selecting the working project.
+- **`last30Days` and `year` Range Presets**: The Engine's timezone-aware range resolution (Rust and TypeScript, with parity vectors) supports the last 30 local days and the current calendar year; the report schemas v2 (JSON and XSD) accept both preset values.
+
+### Fixed in 1.14.7
+
+- **Report Data Correctness (Phase 23, Group B)**:
+  - Report periods are resolved on the local calendar of the user's timezone through the Engine's range resolution instead of UTC arithmetic, so a log made just after local midnight counts under "Today". Custom date ranges are local days and include the chosen last day.
+  - The daily average divides by real local days: the "All" period counts from the first entry in scope instead of using 1, and "Last 30 days" spans exactly 30 days.
+  - Range and computed metrics attribute time to the project of the entry's task in both engines (the entry's own project only when the task is missing), matching reports and billing; a patch on a moved task no longer stays under the old project natively. Pinned by `tests/fixtures/range-metrics-parity-vectors.json`.
+  - Billing has a single fetch path, so an empty project scope or an empty tag intersection gives the same result as the statistics cards.
 
 ---
 
