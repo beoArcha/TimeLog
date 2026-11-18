@@ -1,3 +1,4 @@
+use super::attribution::TaskProjectIndex;
 use super::clamping::{clamp_interval, IntervalInput};
 use crate::engine::{Engine, EngineError};
 use crate::types::{ElapsedRangeFilter, RangeMetricsResult};
@@ -41,6 +42,9 @@ impl<'a> Engine<'a> {
             clamped_logs: Vec::new(),
         };
 
+        let all_tasks = self.persistence.tasks.get_all()?;
+        let attribution = TaskProjectIndex::new(&all_tasks);
+
         let all_logs = self.persistence.time_logs.get_all()?;
         for log in &all_logs {
             if let Some(ref task_ids) = relevant_task_ids {
@@ -48,20 +52,14 @@ impl<'a> Engine<'a> {
                     continue;
                 }
             }
-            if let Some(ref target_project_id) = filter.project_id {
-                if &log.project_id != target_project_id {
-                    continue;
-                }
-            }
-            if let Some(ref target_project_ids) = filter.project_ids {
-                if !target_project_ids.contains(&log.project_id) {
-                    continue;
-                }
+            let project_id = attribution.resolve(Some(&log.task_id), &log.project_id);
+            if !matches_project_filter(filter, project_id) {
+                continue;
             }
 
             let input = IntervalInput {
                 id: &log.id,
-                project_id: &log.project_id,
+                project_id,
                 task_id: &log.task_id,
                 start_time: &log.start_time,
                 end_time: log.end_time.as_deref(),
@@ -91,7 +89,12 @@ impl<'a> Engine<'a> {
                 end: range_end,
                 now,
             };
-            self.process_patches(filter, relevant_task_ids.as_ref(), bounds, &mut result)?;
+            let scope = PatchScope {
+                filter,
+                relevant_task_ids: relevant_task_ids.as_ref(),
+                attribution: &attribution,
+            };
+            self.process_patches(&scope, bounds, &mut result)?;
         }
 
         Ok(result)
@@ -117,24 +120,19 @@ impl<'a> Engine<'a> {
 
     fn process_patches(
         &self,
-        filter: &ElapsedRangeFilter,
-        relevant_task_ids: Option<&HashSet<String>>,
+        scope: &PatchScope<'_>,
         bounds: RangeIntervalBounds,
         acc: &mut RangeMetricsResult,
     ) -> Result<(), EngineError> {
         let patches = self.persistence.patches.get_all()?;
         for patch in &patches {
-            if let Some(ref target_project_id) = filter.project_id {
-                if &patch.project_id != target_project_id {
-                    continue;
-                }
+            let project_id = scope
+                .attribution
+                .resolve(patch.task_id.as_deref(), &patch.project_id);
+            if !matches_project_filter(scope.filter, project_id) {
+                continue;
             }
-            if let Some(ref target_project_ids) = filter.project_ids {
-                if !target_project_ids.contains(&patch.project_id) {
-                    continue;
-                }
-            }
-            if let Some(task_ids) = relevant_task_ids {
+            if let Some(task_ids) = scope.relevant_task_ids {
                 let matches_task = patch
                     .task_id
                     .as_deref()
@@ -148,7 +146,7 @@ impl<'a> Engine<'a> {
             let task_id_str = patch.task_id.as_deref().unwrap_or_default();
             let input = IntervalInput {
                 id: &patch.id,
-                project_id: &patch.project_id,
+                project_id,
                 task_id: task_id_str,
                 start_time: &patch.start_time,
                 end_time: Some(&patch.end_time),
@@ -172,6 +170,24 @@ impl<'a> Engine<'a> {
         }
         Ok(())
     }
+}
+
+struct PatchScope<'a> {
+    filter: &'a ElapsedRangeFilter,
+    relevant_task_ids: Option<&'a HashSet<String>>,
+    attribution: &'a TaskProjectIndex<'a>,
+}
+
+fn matches_project_filter(filter: &ElapsedRangeFilter, project_id: &str) -> bool {
+    let matches_single = filter
+        .project_id
+        .as_deref()
+        .is_none_or(|wanted| wanted == project_id);
+    let matches_many = filter
+        .project_ids
+        .as_ref()
+        .is_none_or(|wanted| wanted.iter().any(|id| id == project_id));
+    matches_single && matches_many
 }
 
 struct RangeIntervalBounds {

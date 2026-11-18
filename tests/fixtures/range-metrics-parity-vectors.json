@@ -1,0 +1,132 @@
+{
+  "rangeVectors": [
+    {
+      "description": "Log whose task moved to another project is counted under the task's current project",
+      "tasks": [{ "id": "t_moved", "projectId": "p_new" }],
+      "logs": [{ "id": "l_moved", "taskId": "t_moved", "projectId": "p_old", "startTime": "2026-06-15T10:00:00Z", "endTime": "2026-06-15T11:00:00Z" }],
+      "patches": [],
+      "filter": { "projectId": "p_new", "from": "2026-06-15T00:00:00Z", "to": "2026-06-15T23:59:59Z" },
+      "expected": {
+        "totalSeconds": 3600,
+        "projectElapsed": { "p_new": 3600 },
+        "taskElapsed": { "t_moved": 3600 },
+        "intervals": [{ "id": "l_moved", "projectId": "p_new", "taskId": "t_moved", "clampedDurationSeconds": 3600 }]
+      }
+    },
+    {
+      "description": "Filtering by the project a task moved away from excludes its logs",
+      "tasks": [{ "id": "t_moved", "projectId": "p_new" }],
+      "logs": [{ "id": "l_moved", "taskId": "t_moved", "projectId": "p_old", "startTime": "2026-06-15T10:00:00Z", "endTime": "2026-06-15T11:00:00Z" }],
+      "patches": [],
+      "filter": { "projectId": "p_old", "from": "2026-06-15T00:00:00Z", "to": "2026-06-15T23:59:59Z" },
+      "expected": { "totalSeconds": 0, "projectElapsed": {}, "taskElapsed": {}, "intervals": [] }
+    },
+    {
+      "description": "Patch whose task moved is counted under the task's current project next to its logs",
+      "tasks": [{ "id": "t_moved", "projectId": "p_new" }],
+      "logs": [{ "id": "l_moved", "taskId": "t_moved", "projectId": "p_old", "startTime": "2026-06-15T10:00:00Z", "endTime": "2026-06-15T11:00:00Z" }],
+      "patches": [{ "id": "pa_moved", "taskId": "t_moved", "projectId": "p_old", "startTime": "2026-06-15T08:00:00Z", "endTime": "2026-06-15T08:30:00Z" }],
+      "filter": { "projectId": "p_new", "from": "2026-06-15T00:00:00Z", "to": "2026-06-15T23:59:59Z", "includePatches": true },
+      "expected": {
+        "totalSeconds": 5400,
+        "projectElapsed": { "p_new": 5400 },
+        "taskElapsed": { "t_moved": 5400 },
+        "intervals": [
+          { "id": "l_moved", "projectId": "p_new", "taskId": "t_moved", "clampedDurationSeconds": 3600 },
+          { "id": "pa_moved", "projectId": "p_new", "taskId": "t_moved", "clampedDurationSeconds": 1800 }
+        ]
+      }
+    },
+    {
+      "description": "Filtering patches by the project their task moved away from excludes them",
+      "tasks": [{ "id": "t_moved", "projectId": "p_new" }],
+      "logs": [],
+      "patches": [{ "id": "pa_moved", "taskId": "t_moved", "projectId": "p_old", "startTime": "2026-06-15T08:00:00Z", "endTime": "2026-06-15T08:30:00Z" }],
+      "filter": { "projectId": "p_old", "from": "2026-06-15T00:00:00Z", "to": "2026-06-15T23:59:59Z", "includePatches": true },
+      "expected": { "totalSeconds": 0, "projectElapsed": {}, "taskElapsed": {}, "intervals": [] }
+    },
+    {
+      "description": "Patch whose task cannot be found or is absent falls back to the patch's own project",
+      "tasks": [],
+      "logs": [],
+      "patches": [
+        { "id": "pa_gone", "taskId": "t_gone", "projectId": "p_a", "startTime": "2026-06-15T08:00:00Z", "endTime": "2026-06-15T08:30:00Z" },
+        { "id": "pa_free", "projectId": "p_b", "startTime": "2026-06-15T09:00:00Z", "endTime": "2026-06-15T09:15:00Z" }
+      ],
+      "filter": { "from": "2026-06-15T00:00:00Z", "to": "2026-06-15T23:59:59Z", "includePatches": true },
+      "expected": {
+        "totalSeconds": 2700,
+        "projectElapsed": { "p_a": 1800, "p_b": 900 },
+        "taskElapsed": { "t_gone": 1800 },
+        "intervals": [
+          { "id": "pa_free", "projectId": "p_b", "taskId": "", "clampedDurationSeconds": 900 },
+          { "id": "pa_gone", "projectId": "p_a", "taskId": "t_gone", "clampedDurationSeconds": 1800 }
+        ]
+      }
+    },
+    {
+      "description": "Log whose task cannot be found falls back to the log's own project",
+      "runtimes": ["browser"],
+      "tasks": [],
+      "logs": [{ "id": "l_orphan", "taskId": "t_gone", "projectId": "p_a", "startTime": "2026-06-15T10:00:00Z", "endTime": "2026-06-15T11:00:00Z" }],
+      "patches": [],
+      "filter": { "projectId": "p_a", "from": "2026-06-15T00:00:00Z", "to": "2026-06-15T23:59:59Z" },
+      "expected": {
+        "totalSeconds": 3600,
+        "projectElapsed": { "p_a": 3600 },
+        "taskElapsed": { "t_gone": 3600 },
+        "intervals": [{ "id": "l_orphan", "projectId": "p_a", "taskId": "t_gone", "clampedDurationSeconds": 3600 }]
+      }
+    },
+    {
+      "description": "Multi-project filter matches on the task's current project for logs and patches",
+      "tasks": [
+        { "id": "t_a", "projectId": "p_a" },
+        { "id": "t_b", "projectId": "p_b" },
+        { "id": "t_c", "projectId": "p_c" },
+        { "id": "t_moved", "projectId": "p_c" }
+      ],
+      "logs": [
+        { "id": "l_a", "taskId": "t_a", "projectId": "p_a", "startTime": "2026-06-15T10:00:00Z", "endTime": "2026-06-15T11:00:00Z" },
+        { "id": "l_b", "taskId": "t_b", "projectId": "p_b", "startTime": "2026-06-15T11:00:00Z", "endTime": "2026-06-15T11:30:00Z" },
+        { "id": "l_c", "taskId": "t_c", "projectId": "p_c", "startTime": "2026-06-15T12:00:00Z", "endTime": "2026-06-15T12:15:00Z" },
+        { "id": "l_moved", "taskId": "t_moved", "projectId": "p_b", "startTime": "2026-06-15T13:00:00Z", "endTime": "2026-06-15T13:10:00Z" }
+      ],
+      "patches": [
+        { "id": "pa_moved", "taskId": "t_moved", "projectId": "p_b", "startTime": "2026-06-15T14:00:00Z", "endTime": "2026-06-15T14:05:00Z" },
+        { "id": "pa_b", "taskId": "t_b", "projectId": "p_b", "startTime": "2026-06-15T15:00:00Z", "endTime": "2026-06-15T15:05:00Z" }
+      ],
+      "filter": { "projectIds": ["p_a", "p_c"], "from": "2026-06-15T00:00:00Z", "to": "2026-06-15T23:59:59Z", "includePatches": true },
+      "expected": {
+        "totalSeconds": 5400,
+        "projectElapsed": { "p_a": 3600, "p_c": 1800 },
+        "taskElapsed": { "t_a": 3600, "t_c": 900, "t_moved": 900 },
+        "intervals": [
+          { "id": "l_a", "projectId": "p_a", "taskId": "t_a", "clampedDurationSeconds": 3600 },
+          { "id": "l_c", "projectId": "p_c", "taskId": "t_c", "clampedDurationSeconds": 900 },
+          { "id": "l_moved", "projectId": "p_c", "taskId": "t_moved", "clampedDurationSeconds": 600 },
+          { "id": "pa_moved", "projectId": "p_c", "taskId": "t_moved", "clampedDurationSeconds": 300 }
+        ]
+      }
+    }
+  ],
+  "computedVectors": [
+    {
+      "description": "Computed project totals follow the task's current project",
+      "now": "2026-06-15T12:00:00Z",
+      "projects": ["p_old", "p_new"],
+      "tasks": [{ "id": "t_moved", "projectId": "p_new" }],
+      "logs": [{ "id": "l_moved", "taskId": "t_moved", "projectId": "p_old", "startTime": "2026-06-15T10:00:00Z", "endTime": "2026-06-15T11:00:00Z" }],
+      "expectedProjectTotals": { "p_old": 0, "p_new": 3600 }
+    },
+    {
+      "description": "Computed project totals fall back to the log's own project when its task cannot be found",
+      "runtimes": ["browser"],
+      "now": "2026-06-15T12:00:00Z",
+      "projects": ["p_a"],
+      "tasks": [],
+      "logs": [{ "id": "l_orphan", "taskId": "t_gone", "projectId": "p_a", "startTime": "2026-06-15T10:00:00Z", "endTime": "2026-06-15T11:00:00Z" }],
+      "expectedProjectTotals": { "p_a": 3600 }
+    }
+  ]
+}

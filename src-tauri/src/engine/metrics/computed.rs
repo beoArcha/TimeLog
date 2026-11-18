@@ -1,3 +1,4 @@
+use super::attribution::TaskProjectIndex;
 use crate::engine::{Engine, EngineError};
 use crate::types::{
     EngineComputedMetrics, Project, ProjectComputedMetrics, Task, TaskComputedMetrics, TimeLog,
@@ -18,6 +19,7 @@ pub(crate) struct LogAggregates {
 impl LogAggregates {
     pub fn compute(
         logs: &[TimeLog],
+        attribution: &TaskProjectIndex<'_>,
         now: DateTime<Utc>,
         start_of_today: DateTime<Utc>,
         start_of_week: DateTime<Utc>,
@@ -25,6 +27,7 @@ impl LogAggregates {
         let mut agg = Self::default();
 
         for log in logs {
+            let project_id = attribution.resolve(Some(&log.task_id), &log.project_id);
             let start = DateTime::parse_from_rfc3339(&log.start_time)
                 .map_err(|e| EngineError::ParseTime(e.to_string()))?
                 .with_timezone(&Utc);
@@ -46,22 +49,22 @@ impl LogAggregates {
                 .entry(log.task_id.clone())
                 .or_insert(0) += diff_secs;
             *agg.project_total_elapsed
-                .entry(log.project_id.clone())
+                .entry(project_id.to_string())
                 .or_insert(0) += diff_secs;
 
             if is_active {
                 agg.task_is_running.insert(log.task_id.clone(), true);
-                agg.project_is_running.insert(log.project_id.clone(), true);
+                agg.project_is_running.insert(project_id.to_string(), true);
             }
 
             let today_secs = calculate_overlap_seconds(start, end, start_of_today, now);
             *agg.project_today_elapsed
-                .entry(log.project_id.clone())
+                .entry(project_id.to_string())
                 .or_insert(0) += today_secs;
 
             let week_secs = calculate_overlap_seconds(start, end, start_of_week, now);
             *agg.project_week_elapsed
-                .entry(log.project_id.clone())
+                .entry(project_id.to_string())
                 .or_insert(0) += week_secs;
         }
 
@@ -211,7 +214,8 @@ impl<'a> Engine<'a> {
         let days_from_monday = now.weekday().num_days_from_monday() as i64;
         let start_of_week = start_of_today - chrono::Duration::days(days_from_monday);
 
-        let agg = LogAggregates::compute(&logs, now, start_of_today, start_of_week)?;
+        let attribution = TaskProjectIndex::new(&tasks);
+        let agg = LogAggregates::compute(&logs, &attribution, now, start_of_today, start_of_week)?;
         let hierarchy = build_task_hierarchy(&tasks);
 
         let computed_tasks = compute_tasks_metrics(&tasks, &hierarchy.subtasks_map, &agg);
