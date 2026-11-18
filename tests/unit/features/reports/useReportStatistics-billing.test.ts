@@ -106,6 +106,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
+        timeZone: 'UTC',
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
       })
     );
@@ -134,6 +135,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
+        timeZone: 'UTC',
         selectedProjectIds: ['p1'],
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
       })
@@ -167,6 +169,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
+        timeZone: 'UTC',
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
       })
     );
@@ -202,6 +205,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
       nowIso: '2026-07-12T15:00:00Z',
       reportPeriod: 'week',
       reportSort: 'duration',
+      timeZone: 'UTC',
       selectedProjectIds: ['p1'],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     };
@@ -257,6 +261,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
           nowIso: '2026-07-12T15:00:00Z',
           reportPeriod: 'week',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         })
@@ -289,6 +294,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
           nowIso: '2026-07-12T15:00:00Z',
           reportPeriod: 'week',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedTags: ['non-existent-tag'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         })
@@ -320,6 +326,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
           nowIso: '2026-07-12T15:00:00Z',
           reportPeriod: 'week',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedProjectIds: ['p2'],
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
@@ -352,6 +359,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
           nowIso: '2026-07-12T15:00:00Z',
           reportPeriod: 'week',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedTags: ['backend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         },
@@ -379,6 +387,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
+        timeZone: 'UTC',
         selectedTags: ['client'],
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
       });
@@ -407,6 +416,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
           nowIso: '2026-07-12T15:00:00Z',
           reportPeriod: 'week',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedProjectIds: ['p1'],
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
@@ -437,6 +447,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
           nowIso: '2026-07-12T15:00:00Z',
           reportPeriod: 'week',
           reportSort: 'duration',
+          timeZone: 'UTC',
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         })
       );

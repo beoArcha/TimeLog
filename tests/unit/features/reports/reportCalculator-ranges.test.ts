@@ -38,6 +38,7 @@ describe('Unit: reportCalculator - Period Ranges and Multi-Day Clamping', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,
@@ -74,6 +75,7 @@ describe('Unit: reportCalculator - Period Ranges and Multi-Day Clamping', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,
@@ -110,6 +112,7 @@ describe('Unit: reportCalculator - Period Ranges and Multi-Day Clamping', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,
@@ -137,6 +140,7 @@ describe('Unit: reportCalculator - Period Ranges and Multi-Day Clamping', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,

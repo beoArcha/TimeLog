@@ -1,5 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from '@common/i18n/translator';
+import { useSettingsSafe } from '@common/hooks/useSettings';
+import { resolveEffectiveTimezone } from '@common/utils/timeFormat';
 import { EngineRouter } from '@common/engine/EngineRouter';
 import { RangeBillingResult } from '@common/engine/billing/types';
 import { ElapsedRangeFilter } from '@bindings/ElapsedRangeFilter';
@@ -42,9 +44,12 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
     customTo,
     selectedProjectIds,
     selectedTags,
+    timeZone: timeZoneOverride,
   } = props;
 
   const { t } = useTranslation('report');
+  const settings = useSettingsSafe();
+  const timeZone = resolveEffectiveTimezone(timeZoneOverride ?? settings?.resolvedTimezone ?? settings?.timezone);
 
   const hasTagFilter = Boolean(selectedTags && selectedTags.length > 0);
   const hasProjectFilter = Boolean(selectedProjectIds && selectedProjectIds.length > 0);
@@ -97,6 +102,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
         customFrom,
         customTo,
         projectIds: engineProjectIds,
+        timeZone,
       }),
     [
       logs,
@@ -110,6 +116,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
       customFrom,
       customTo,
       engineProjectIds,
+      timeZone,
     ]
   );
 
@@ -140,13 +147,14 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
       let filterContext: ElapsedRangeFilter | null = null;
       try {
         const now = nowIso ? new Date(nowIso) : new Date();
-        const { filter } = getRangeFilterForPeriod(
-          reportPeriod,
+        const { filter } = getRangeFilterForPeriod({
+          period: reportPeriod,
           now,
+          timeZone,
           customFrom,
           customTo,
-          includePatches
-        );
+          includePatches,
+        });
 
         if (engineProjectIds !== null) {
           filter.projectIds = engineProjectIds;
@@ -211,6 +219,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
     allowedProjectIds,
     engineProjectIds,
     includePatches,
+    timeZone,
     t,
   ]);
 

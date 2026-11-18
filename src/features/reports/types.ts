@@ -29,6 +29,8 @@ export interface UseReportStatisticsProps {
   customFrom?: string;
   customTo?: string;
   selectedProjectIds?: readonly string[];
+  /** Overrides the timezone taken from the user's settings; mainly for isolated rendering. */
+  timeZone?: string;
 }
 
 export interface ProjectChartItem {

@@ -6,13 +6,10 @@ import { Settings } from '@bindings/Settings';
 import { calculateRangeMetrics } from '@plugins/engine/elapsed';
 import { ReportStatisticsResult } from '../types';
 import { getRangeFilterForPeriod } from './periodRanges';
+import { findEarliestEntryStart } from './earliestEntry';
 import { calculateTopProject, buildProjectChart } from './projectDistribution';
 
-export {
-  calculateStartOfWeek,
-  calculateLogDurationSeconds,
-  getRangeFilterForPeriod,
-} from './periodRanges';
+export { getRangeFilterForPeriod } from './periodRanges';
 
 export {
   calculateTopProject,
@@ -35,6 +32,7 @@ export function calculateReportStatistics({
   customFrom,
   customTo,
   projectIds,
+  timeZone,
 }: {
   logs: TimeLog[];
   patches: PatchLog[];
@@ -47,14 +45,17 @@ export function calculateReportStatistics({
   customFrom?: string;
   customTo?: string;
   projectIds?: readonly string[] | null;
+  /** IANA zone of the user's local calendar; period edges and day counts are resolved in it. */
+  timeZone: string;
 }): ReportStatisticsResult {
   const now = nowIso ? new Date(nowIso) : new Date();
   const includePatches = !!sysSettings?.includePatchesInReports;
 
   // 1. Delegate baseline overview metrics (today, week, month) to engine
-  const todayRange = getRangeFilterForPeriod('today', now, undefined, undefined, includePatches);
-  const weekRange = getRangeFilterForPeriod('week', now, undefined, undefined, includePatches);
-  const monthRange = getRangeFilterForPeriod('month', now, undefined, undefined, includePatches);
+  const periodContext = { now, timeZone, includePatches };
+  const todayRange = getRangeFilterForPeriod({ ...periodContext, period: 'today' });
+  const weekRange = getRangeFilterForPeriod({ ...periodContext, period: 'week' });
+  const monthRange = getRangeFilterForPeriod({ ...periodContext, period: 'month' });
 
   if (projectIds) {
     todayRange.filter.projectIds = [...projectIds];
@@ -71,7 +72,19 @@ export function calculateReportStatistics({
   const monthSec = monthResult.totalSeconds;
 
   // 2. Delegate active period metrics to engine
-  const activeRange = getRangeFilterForPeriod(reportPeriod, now, customFrom, customTo, includePatches);
+  const activeRange = getRangeFilterForPeriod({
+    ...periodContext,
+    period: reportPeriod,
+    customFrom,
+    customTo,
+    earliestEntryIso: findEarliestEntryStart({
+      logs,
+      patches,
+      tasks,
+      projectIds: projectIds ?? null,
+      includePatches,
+    }),
+  });
   if (projectIds) {
     activeRange.filter.projectIds = [...projectIds];
   }

@@ -42,6 +42,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs: activeLogs,
       patches: [],
       projects,
@@ -80,6 +81,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs: activeLogs,
       patches: [],
       projects,
@@ -117,6 +119,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,
@@ -153,6 +156,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,
@@ -182,6 +186,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,
@@ -225,6 +230,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches,
       projects,
@@ -266,6 +272,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,
@@ -308,6 +315,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act: Filter exclusively for p2
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,
@@ -347,6 +355,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects: threeProjects,
@@ -373,6 +382,7 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
 
     // Act
     const result = calculateReportStatistics({
+      timeZone: 'UTC',
       logs,
       patches: [],
       projects,
