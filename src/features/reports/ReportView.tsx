@@ -260,12 +260,6 @@ export default function ReportView({ state }: { state: GuiState }) {
       />
 
       <ReportBillingCard
-        reportPeriod={reportPeriod}
-        customFrom={customFrom}
-        customTo={customTo}
-        nowIso={nowIso}
-        selectedProjectIds={reportProjectIds}
-        sysSettings={sysSettings}
         billingResult={billingResult}
         billingError={billingError}
         isLoading={isBillingLoading}
