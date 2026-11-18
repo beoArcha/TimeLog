@@ -98,7 +98,7 @@ describe('Given a tag filter that matches no project in the report scope', () =>
         endTime: '2026-06-15T16:00:00Z',
       });
 
-      // User has selected only project Alpha in report scope
+      // Report scope holds only project Alpha
       const stateProp = {
         ...mockState,
         projects: [projectAlpha, projectBeta],
@@ -120,26 +120,24 @@ describe('Given a tag filter that matches no project in the report scope', () =>
         </MockProviders>
       );
 
-      // Initially, project Alpha is in scope and calculation ran
+      // Wait for the initial in-scope billing fetch so the later assertion only sees the tag change
       await waitFor(() => {
         expect(screen.getByTestId('report-billing-collapsible-header')).toBeDefined();
       });
 
       calculateRangeBillingMock.mockClear();
 
-      // When: The user clicks the 'backend' tag chip, which only matches project Beta
+      // When
       const backendTagChip = screen.getByTestId('tag-chip-backend');
       fireEvent.click(backendTagChip);
 
-      // Then: The intersection between scope (p-alpha) and tag filter (backend -> p-beta) is empty
+      // Then
       await waitFor(() => {
         expect(screen.getByTestId('report-billing-empty')).toBeDefined();
       });
 
-      // Statistics card shows 00:00:00 duration
       expect(screen.getByTestId('report-stat-total').textContent).toContain('00:00:00');
 
-      // No currency amounts from any projects are rendered
       expect(screen.queryByTestId('report-stat-currency-USD')).toBeNull();
 
       // Billing engine was NOT queried because empty intersection is resolved immediately
