@@ -1,6 +1,6 @@
-import fs from 'fs';
 import ts from 'typescript';
 import { ArchitectureRule, ModuleGraph, RuleViolation } from '../core/types';
+import { SourceCache, parseSource } from '../core/source-cache';
 import { validateJsxTree } from '../core/jsx-walker';
 
 export interface JsxContentModelOptions {
@@ -53,8 +53,8 @@ export class JsxContentModelRule implements ArchitectureRule<JsxContentModelOpti
         continue;
       }
 
-      const fileContent = fs.readFileSync(node.absolutePath, 'utf-8');
-      const fileViolations = this.scanAst(fileContent, normalizedId);
+      const sourceFile = SourceCache.getSourceFile(node.absolutePath);
+      const fileViolations = this.scanSourceFile(sourceFile, normalizedId);
       violations.push(...fileViolations);
     }
 
@@ -65,14 +65,10 @@ export class JsxContentModelRule implements ArchitectureRule<JsxContentModelOpti
    * Scans a TSX source string for structural JSX constraints using validateJsxTree.
    */
   public scanAst(sourceText: string, filePath: string): RuleViolation[] {
-    const sourceFile = ts.createSourceFile(
-      filePath,
-      sourceText,
-      ts.ScriptTarget.Latest,
-      true,
-      ts.ScriptKind.TSX
-    );
+    return this.scanSourceFile(parseSource(filePath, sourceText, ts.ScriptKind.TSX), filePath);
+  }
 
+  public scanSourceFile(sourceFile: ts.SourceFile, filePath: string): RuleViolation[] {
     const errors = validateJsxTree(sourceFile);
 
     return errors.map(err => ({

@@ -1,6 +1,6 @@
-import fs from 'fs';
 import ts from 'typescript';
 import { ArchitectureRule, ModuleGraph, RuleViolation } from '../core/types';
+import { SourceCache, parseSource } from '../core/source-cache';
 
 export interface NoNestedTernariesOptions {
   allowlist?: Set<string> | string[];
@@ -44,23 +44,19 @@ export class NoNestedTernariesRule implements ArchitectureRule<NoNestedTernaries
         continue;
       }
 
-      const fileContent = fs.readFileSync(node.absolutePath, 'utf-8');
-      violations.push(...this.scanAst(fileContent, normalizedId));
+      const sourceFile = SourceCache.getSourceFile(node.absolutePath);
+      violations.push(...this.scanSourceFile(sourceFile, normalizedId));
     }
 
     return violations;
   }
 
   public scanAst(sourceText: string, filePath: string): RuleViolation[] {
-    const violations: RuleViolation[] = [];
-    const sourceFile = ts.createSourceFile(
-      filePath,
-      sourceText,
-      ts.ScriptTarget.Latest,
-      true,
-      filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-    );
+    return this.scanSourceFile(parseSource(filePath, sourceText), filePath);
+  }
 
+  public scanSourceFile(sourceFile: ts.SourceFile, filePath: string): RuleViolation[] {
+    const violations: RuleViolation[] = [];
     const checkConditionalBranches = (node: ts.ConditionalExpression) => {
       const cond = unwrapParens(node.condition);
       const trueBranch = unwrapParens(node.whenTrue);

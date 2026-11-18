@@ -1,5 +1,5 @@
-import fs from "fs";
 import { ArchitectureRule, ModuleGraph, RuleViolation } from "../core/types";
+import { SourceCache } from "../core/source-cache";
 
 /**
  * Architectural Rule: Single Source of Truth for Live Elapsed Time
@@ -19,7 +19,7 @@ export class TimerLiveCalculationRule implements ArchitectureRule {
         this.targetDirs.has(node.topLevelDir) &&
         (nodeId.endsWith(".tsx") || nodeId.endsWith(".ts"))
       ) {
-        const fileContent = fs.readFileSync(node.absolutePath, "utf-8");
+        const fileContent = SourceCache.getText(node.absolutePath);
         // Match setInterval invocation (excluding comments)
         const lines = fileContent.split("\n");
         lines.forEach((lineText, idx) => {
