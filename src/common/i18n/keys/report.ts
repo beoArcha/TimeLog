@@ -64,6 +64,7 @@ export type ReportKey =
   | 'PlainDump'
   | 'Print'
   | 'ProjectShare'
+  | 'ResetProjectScope'
   | 'SearchLogsPlaceholder'
   | 'SelectFormat'
   | 'SelectedPeriodTotalDesc'

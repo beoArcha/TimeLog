@@ -37,6 +37,9 @@ function createMockGuiState(overrides: Partial<GuiState> = {}): GuiState {
     onStopTimer: vi.fn(),
     setHolidays: vi.fn(),
     selectedTaskId: null,
+    reportProjectIds: [],
+    toggleReportProject: vi.fn(),
+    clearReportProjects: vi.fn(),
     ...overrides,
   } as unknown as GuiState;
 }
@@ -142,6 +145,57 @@ describe('Sidebar', () => {
 
     expect(container.querySelector('#archive-project-btn-proj-2')).not.toBeNull();
     expect(container.querySelector('#delete-project-btn-proj-2')).toBeNull();
+  });
+
+  it('should toggle report project scope and not change working project when Reports tab is active', () => {
+    // Arrange
+    const setSelectedProjectId = vi.fn();
+    const toggleReportProject = vi.fn();
+    const state = createMockGuiState({
+      activeLargeTab: 'reports',
+      activeView: 'reports',
+      setSelectedProjectId,
+      toggleReportProject,
+      reportProjectIds: ['proj-1'],
+    });
+
+    // Act
+    render(
+      <MockProviders>
+        <Sidebar state={state} />
+      </MockProviders>
+    );
+    const item2 = screen.getByTestId('sidebar-project-proj-2');
+    fireEvent.click(item2);
+
+    // Assert
+    expect(toggleReportProject).toHaveBeenCalledWith('proj-2');
+    expect(setSelectedProjectId).not.toHaveBeenCalled();
+    expect(screen.getByTestId('project-selected-check-proj-1')).toBeDefined();
+    expect(screen.queryByTestId('project-selected-check-proj-2')).toBeNull();
+  });
+
+  it('should render reset button and invoke clearReportProjects when clicked in Reports mode', () => {
+    // Arrange
+    const clearReportProjects = vi.fn();
+    const state = createMockGuiState({
+      activeLargeTab: 'reports',
+      activeView: 'reports',
+      clearReportProjects,
+      reportProjectIds: ['proj-1'],
+    });
+
+    // Act
+    render(
+      <MockProviders>
+        <Sidebar state={state} />
+      </MockProviders>
+    );
+    const resetBtn = screen.getByTestId('sidebar-reset-scope');
+    fireEvent.click(resetBtn);
+
+    // Assert
+    expect(clearReportProjects).toHaveBeenCalled();
   });
 });
 
