@@ -44,6 +44,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
         with:
           install-linux-deps: "true"
+          cache-save-if: "false"
 
       - name: Check TypeScript Bindings Parity
         shell: bash

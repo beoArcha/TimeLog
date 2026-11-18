@@ -11,13 +11,29 @@ inputs:
     required: false
     default: ""
   install-linux-deps:
-    description: Whether to install GTK3/WebKit2GTK/lld Linux libraries
+    description: Whether to install GTK3/WebKit2GTK/lld Linux libraries needed to compile and test the Tauri crate
     required: false
     default: "false"
+  install-bundling-deps:
+    description: Whether to also install packages needed only by `tauri build` bundling (patchelf, librsvg2-dev). Requires install-linux-deps.
+    required: false
+    default: "false"
+  apt-cache-version:
+    description: Bump to invalidate the cached APT package set
+    required: false
+    default: "1"
   workspaces:
     description: Workspaces for Swatinem/rust-cache
     required: false
     default: "src-tauri -> target"
+  shared-key:
+    description: Swatinem/rust-cache shared key; jobs with the same key, toolchain and CARGO_*/RUST* env share one cache
+    required: false
+    default: "tauri-ci"
+  cache-save-if:
+    description: Whether the Rust build cache is saved after the job. Defaults to main-branch runs only so PRs restore but never write caches.
+    required: false
+    default: ${{ github.ref == 'refs/heads/main' }}
 
 runs:
   using: composite
@@ -32,41 +48,19 @@ runs:
       uses: Swatinem/rust-cache@v2
       with:
         workspaces: ${{ inputs.workspaces }}
+        shared-key: ${{ inputs.shared-key }}
+        save-if: ${{ inputs.cache-save-if }}
 
-    - name: Cache Linux APT Packages
-      if: inputs.install-linux-deps == 'true' && runner.os == 'Linux'
-      uses: actions/cache@v4
-      with:
-        path: /tmp/apt-archives
-        key: apt-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/actions/setup-rust/action.yml') }}
-        restore-keys: |
-          apt-cache-${{ runner.os }}-${{ runner.arch }}-
-
-    # Install Linux headers without recommended documentation and multimedia packages to reduce download count.
-    # Azure Ubuntu mirrors frequently throttle large package downloads (such as WebKit2GTK at 25MB).
-    # Overriding to Canonical's primary archive mirror and caching deb files prevents 10-minute network stalls.
+    # lld is installed for every caller: RUSTFLAGS="-C link-arg=-fuse-ld=lld" is set by test-rust, build-tauri and verify-release.
     - name: Install Linux Dependencies
       if: inputs.install-linux-deps == 'true' && runner.os == 'Linux'
-      shell: bash
-      run: |
-        sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/sources.list /etc/apt/sources.list.d/* /etc/apt/apt-mirrors.txt 2>/dev/null || true
-
-        mkdir -p /tmp/apt-archives/partial
-        sudo tee /etc/apt/apt.conf.d/99speed > /dev/null << 'EOF'
-        Acquire::http::Timeout "30";
-        Acquire::Retries "3";
-        Dpkg::Use-Pty "0";
-        Dir::Cache::Archives "/tmp/apt-archives";
-        EOF
-
-        sudo apt-get update
-        sudo apt-get install -y --no-install-recommends \
-          pkg-config \
-          libgtk-3-dev \
-          libwebkit2gtk-4.1-dev \
-          libappindicator3-dev \
-          librsvg2-dev \
-          patchelf \
+      uses: awalsh128/cache-apt-pkgs-action@v1.6.3
+      with:
+        packages: >-
+          pkg-config
+          libgtk-3-dev
+          libwebkit2gtk-4.1-dev
+          libappindicator3-dev
           lld
-
-        sudo chmod -R a+rX /tmp/apt-archives
+          ${{ inputs.install-bundling-deps == 'true' && 'patchelf librsvg2-dev' || '' }}
+        version: ${{ inputs.apt-cache-version }}
