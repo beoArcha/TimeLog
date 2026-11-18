@@ -1,5 +1,6 @@
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { EngineRouter } from '@common/engine/EngineRouter';
+import { resolveTimezone } from '@common/engine/range/timezone';
 import { getRangeFilterForPeriod } from '@features/reports/utils/periodRanges';
 import { TerminalLine, CliEngineContext } from '../types';
 import { TerminalOutput } from '../utils/terminalOutput';
@@ -50,7 +51,7 @@ export const runTimeCommand = async (
     }
   } else {
     const refDate = nowIso ? new Date(nowIso) : new Date();
-    const rangeResult = getRangeFilterForPeriod(period, refDate);
+    const rangeResult = getRangeFilterForPeriod({ period, now: refDate, timeZone: resolveTimezone() });
     const rangeMetrics = await metricsEngine.getRangeMetrics(rangeResult.filter, nowIso);
 
     if (type === 'profile') {

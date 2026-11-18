@@ -106,6 +106,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
+        timeZone: 'UTC',
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] }
       })
     );
@@ -135,6 +136,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
+        timeZone: 'UTC',
         sysSettings: { includePatchesInReports: true, autoStart: false, activeSinks: [] }
       })
     );
@@ -158,6 +160,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'today',
         reportSort: 'duration',
+        timeZone: 'UTC',
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] }
       })
     );
@@ -180,6 +183,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'month',
         reportSort: 'date',
+        timeZone: 'UTC',
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] }
       })
     );
@@ -206,6 +210,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'all',
         reportSort: 'duration',
+        timeZone: 'UTC',
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] }
       })
     );
@@ -228,6 +233,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
+        timeZone: 'UTC',
         selectedProjectIds: [] as string[],
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
       },
@@ -252,6 +258,7 @@ describe('Unit Tests: useReportStatistics', () => {
       nowIso: '2026-07-12T15:00:00Z',
       reportPeriod: 'week',
       reportSort: 'duration',
+      timeZone: 'UTC',
       selectedProjectIds: ['p1'],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     });
@@ -281,6 +288,7 @@ describe('Unit Tests: useReportStatistics', () => {
       nowIso: '2026-07-12T15:00:00Z',
       reportPeriod: 'week',
       reportSort: 'duration',
+      timeZone: 'UTC',
       selectedProjectIds: ['p2'],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     });
@@ -326,6 +334,7 @@ describe('Unit Tests: useReportStatistics', () => {
           customFrom: '2026-06-15',
           customTo: '2026-06-22',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedProjectIds: ['p1'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         },
@@ -364,6 +373,7 @@ describe('Unit Tests: useReportStatistics', () => {
       customFrom: '2026-06-15',
       customTo: '2026-06-22',
       reportSort: 'duration',
+      timeZone: 'UTC',
       selectedProjectIds: ['p2'],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     });
@@ -397,6 +407,7 @@ describe('Unit Tests: useReportStatistics', () => {
       customFrom: '2026-06-15',
       customTo: '2026-06-22',
       reportSort: 'duration',
+      timeZone: 'UTC',
       selectedProjectIds: [],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     });
@@ -435,6 +446,7 @@ describe('Unit Tests: useReportStatistics', () => {
           nowIso: '2026-06-25T15:00:00Z',
           reportPeriod: 'all',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedProjectIds: ['p1'],
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
@@ -459,6 +471,7 @@ describe('Unit Tests: useReportStatistics', () => {
           nowIso: '2026-06-25T15:00:00Z',
           reportPeriod: 'all',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedProjectIds: ['p2'], // Beta is 'backend'
           selectedTags: ['frontend'], // active tag is 'frontend'
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
@@ -487,6 +500,7 @@ describe('Unit Tests: useReportStatistics', () => {
           nowIso: '2026-06-25T15:00:00Z',
           reportPeriod: 'all',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedProjectIds: ['p1', 'p2'],
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
@@ -508,6 +522,7 @@ describe('Unit Tests: useReportStatistics', () => {
           nowIso: '2026-06-25T15:00:00Z',
           reportPeriod: 'all',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedProjectIds: ['p2', 'p3'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         })
@@ -528,6 +543,7 @@ describe('Unit Tests: useReportStatistics', () => {
           nowIso: '2026-06-25T15:00:00Z',
           reportPeriod: 'all',
           reportSort: 'duration',
+          timeZone: 'UTC',
           selectedProjectIds: [],
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },

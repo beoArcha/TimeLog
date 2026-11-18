@@ -1,6 +1,7 @@
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { EngineRouter } from '@common/engine/EngineRouter';
 import { translate } from '@common/i18n/translator';
+import { resolveTimezone } from '@common/engine/range/timezone';
 import { getRangeFilterForPeriod } from '@features/reports/utils/periodRanges';
 import { TerminalLine, CliEngineContext } from '../types';
 import { TerminalOutput } from '../utils/terminalOutput';
@@ -19,7 +20,7 @@ export const runReportCommand = async (
   const sortBy = args[1] ? args[1].toLowerCase() : 'duration';
 
   const refDate = nowIso ? new Date(nowIso) : new Date();
-  const rangeResult = getRangeFilterForPeriod(period, refDate);
+  const rangeResult = getRangeFilterForPeriod({ period, now: refDate, timeZone: resolveTimezone() });
   const metricsEngine = EngineRouter.getInstance().metrics;
   const rangeMetrics = await metricsEngine.getRangeMetrics(rangeResult.filter, nowIso);
 
