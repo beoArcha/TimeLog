@@ -51,6 +51,12 @@ runs:
         shared-key: ${{ inputs.shared-key }}
         save-if: ${{ inputs.cache-save-if }}
 
+    # The runner image ships stale package indexes; without a refresh the installer 404s on superseded .deb versions.
+    - name: Refresh APT Index
+      if: inputs.install-linux-deps == 'true' && runner.os == 'Linux'
+      shell: bash
+      run: sudo apt-get update -o Acquire::Retries=3
+
     # lld is installed for every caller: RUSTFLAGS="-C link-arg=-fuse-ld=lld" is set by test-rust, build-tauri and verify-release.
     - name: Install Linux Dependencies
       if: inputs.install-linux-deps == 'true' && runner.os == 'Linux'
@@ -64,3 +70,8 @@ runs:
           lld
           ${{ inputs.install-bundling-deps == 'true' && 'patchelf librsvg2-dev' || '' }}
         version: ${{ inputs.apt-cache-version }}
+
+    - name: Verify Linux Dependencies
+      if: inputs.install-linux-deps == 'true' && runner.os == 'Linux'
+      shell: bash
+      run: pkg-config --exists gio-2.0 gtk+-3.0 webkit2gtk-4.1 || { echo "::error::Linux system libraries are missing after the APT step"; exit 1; }
