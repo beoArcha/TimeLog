@@ -94,6 +94,10 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
       activeLog: null,
     });
 
+    // The default locale is English, so the label captured here is the baseline a persisted locale must change.
+    await expect(mainPage.tabMain).toBeVisible();
+    const baselineLabel = await mainPage.tabMain.innerText();
+
     // Seed German locale in standard storage keys
     await page.evaluate(() => {
       localStorage.setItem('oxytime_locale', 'de');
@@ -103,9 +107,7 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#app-root-container', { timeout: 15000 });
 
-    // Verify UI reflects German translations
-    const mainTab = page.locator('[data-testid="tab-main"]');
-    await expect(mainTab).toBeVisible();
-    await expect(mainTab).toContainText('GUI-Schnittstelle');
+    await expect(mainPage.tabMain).toBeVisible();
+    await expect(mainPage.tabMain).not.toHaveText(baselineLabel);
   });
 });

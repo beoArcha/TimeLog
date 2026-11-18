@@ -3,23 +3,26 @@ import { BasePage } from './BasePage';
 
 export class SettingsPage extends BasePage {
   readonly tabOptionsBtn: Locator;
-  readonly tabDbBtn: Locator;
-  readonly dbExplorerPanel: Locator;
-  readonly exportDbBtn: Locator;
+  readonly destructiveZoneCard: Locator;
+  readonly hardResetBtn: Locator;
+  readonly resetDialogCancelBtn: Locator;
+  readonly resetDialogConfirmBtn: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.tabOptionsBtn = page.locator('[data-testid="tab-settings"], [data-testid="tab-options"]');
-    this.tabDbBtn = page.locator('[data-testid="tab-db"]');
-    this.dbExplorerPanel = page.locator('#db-explorer-panel');
-    this.exportDbBtn = page.locator('[data-testid="export-db-btn"]');
+    this.tabOptionsBtn = page.locator('[data-testid="tab-settings"]');
+    this.destructiveZoneCard = page.locator('[data-testid="destructive-zone-card"]');
+    this.hardResetBtn = page.locator('[data-testid="hard-reset-btn"]');
+    this.resetDialogCancelBtn = page.locator('[data-testid="confirm-dialog-cancel-btn"]');
+    this.resetDialogConfirmBtn = page.locator('[data-testid="confirm-dialog-confirm-btn"]');
   }
 
   async openOptionsTab() {
     await this.tabOptionsBtn.click();
   }
 
-  async openDbTab() {
-    await this.tabDbBtn.click();
+  async openHardResetDialog() {
+    await this.destructiveZoneCard.click();
+    await this.hardResetBtn.click();
   }
 }

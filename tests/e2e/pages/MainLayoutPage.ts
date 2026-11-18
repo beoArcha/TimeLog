@@ -9,7 +9,7 @@ export class MainLayoutPage extends BasePage {
   readonly tabDb: Locator;
   readonly tabOptions: Locator;
 
-  readonly sizeSmallBtn: Locator;
+  readonly sizeCompactBtn: Locator;
   readonly sizeMediumBtn: Locator;
   readonly sizeLargeBtn: Locator;
 
@@ -21,6 +21,7 @@ export class MainLayoutPage extends BasePage {
   readonly newProjectInput: Locator;
   readonly addProjectBtn: Locator;
   readonly projectsListContainer: Locator;
+  readonly projectEmptyState: Locator;
 
   readonly newTaskInput: Locator;
   readonly addTaskBtn: Locator;
@@ -38,12 +39,12 @@ export class MainLayoutPage extends BasePage {
 
     // Header & Tabs
     this.headerLogo = page.locator('[data-testid="app-header-logo"]');
-    this.tabMain = page.locator('[data-testid="tab-tasks"], [data-testid="tab-main"]');
+    this.tabMain = page.locator('[data-testid="tab-tasks"]');
     this.tabReports = page.locator('[data-testid="tab-reports"]');
     this.tabDb = page.locator('[data-testid="tab-db"]');
-    this.tabOptions = page.locator('[data-testid="tab-settings"], [data-testid="tab-options"]');
+    this.tabOptions = page.locator('[data-testid="tab-settings"]');
 
-    this.sizeSmallBtn = page.locator('[data-testid="layout-variant-compact"]:visible');
+    this.sizeCompactBtn = page.locator('[data-testid="layout-variant-compact"]:visible');
     this.sizeMediumBtn = page.locator('[data-testid="layout-variant-medium"]:visible');
     this.sizeLargeBtn = page.locator('[data-testid="layout-variant-full"]:visible');
 
@@ -65,11 +66,16 @@ export class MainLayoutPage extends BasePage {
     this.newProjectInput = page.locator('#new-project-input');
     this.addProjectBtn = page.locator('#add-project-btn');
     this.projectsListContainer = page.locator('#projects-list-container');
+    this.projectEmptyState = page.locator('[data-testid="project-empty-state"]');
 
     // Tasks ListView
     this.newTaskInput = page.locator('#new-task-input');
     this.addTaskBtn = page.locator('#add-task-btn');
     this.tasksTreeContainer = page.locator('#tasks-tree-container');
+  }
+
+  rootTaskCard(taskId: string): Locator {
+    return this.page.locator(`#root-task-card-${taskId}`);
   }
 
   async getElementContentMetrics(locator: Locator) {
@@ -108,11 +114,11 @@ export class MainLayoutPage extends BasePage {
     );
   }
 
-  async switchLayoutVariant(variant: 'compact' | 'medium' | 'full') {
+  async switchLayoutVariant(variant: 'medium' | 'full') {
     await this.page.locator(`[data-testid="layout-variant-${variant}"]:visible`).click();
   }
 
-  async switchTab(tabId: 'main' | 'reports' | 'db' | 'options') {
+  async switchTab(tabId: 'tasks' | 'reports' | 'settings') {
     await this.page.locator(`[data-testid="tab-${tabId}"]`).click();
   }
 

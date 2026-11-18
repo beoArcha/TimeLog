@@ -22,7 +22,7 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
     await expect(mainPage.tabOptions).toBeVisible();
     await expect(mainPage.idleTimerBanner).toBeVisible();
     await expect(mainPage.activeTimerBanner).toBeHidden();
-    await expect(mainPage.projectsListContainer).toContainText('No projects');
+    await expect(mainPage.projectEmptyState).toBeVisible();
     await expect(page.locator('#app-root-container')).toContainText('Select project');
   });
 
@@ -32,6 +32,13 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
     await expect(mainPage.tabMain).toBeHidden();
     await mainPage.switchLayoutVariant('full');
     await expect(mainPage.tabMain).toBeVisible();
+  });
+
+  test('should offer only medium and full layout variants in the browser runtime', async ({ mainPage }) => {
+    await expect(mainPage.sizeMediumBtn).toBeVisible();
+    await expect(mainPage.sizeLargeBtn).toBeVisible();
+    // The compact widget needs native window control, so the browser runtime never offers it.
+    await expect(mainPage.sizeCompactBtn).toBeHidden();
   });
 
   test('should allow a complete workflow of project and task creation', async ({ mainPage }) => {
