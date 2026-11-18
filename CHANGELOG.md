@@ -223,6 +223,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.14.7] - 2026-11-18
+
+### Added in 1.14.7
+
+- **Sidebar Multi-Select in Reports**: While Reports is active, project rows in the sidebar toggle the report scope (one or many projects) with a check mark and `aria-pressed`, and an "All" button resets the scope; in other tabs the sidebar keeps selecting the working project.
+- **`last30Days` and `year` Range Presets**: The Engine's timezone-aware range resolution (Rust and TypeScript, with parity vectors) supports the last 30 local days and the current calendar year; the report schemas v2 (JSON and XSD) accept both preset values.
+
+### Fixed in 1.14.7
+
+- **Report Data Correctness (Phase 23, Group B)**:
+  - Report periods are resolved on the local calendar of the user's timezone through the Engine's range resolution instead of UTC arithmetic, so a log made just after local midnight counts under "Today". Custom date ranges are local days and include the chosen last day.
+  - The daily average divides by real local days: the "All" period counts from the first entry in scope instead of using 1, and "Last 30 days" spans exactly 30 days.
+  - Range and computed metrics attribute time to the project of the entry's task in both engines (the entry's own project only when the task is missing), matching reports and billing; a patch on a moved task no longer stays under the old project natively. Pinned by `tests/fixtures/range-metrics-parity-vectors.json`.
+  - Billing has a single fetch path, so an empty project scope or an empty tag intersection gives the same result as the statistics cards.
+
+---
+
 ## [1.12.7] - 2026-11-02
 
 ### Added in 1.12.7
