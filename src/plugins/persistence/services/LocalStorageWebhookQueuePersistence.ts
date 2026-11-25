@@ -2,11 +2,12 @@ import { IWebhookQueuePersistence } from '@common/persistence/IPersistence';
 import { WebhookQueueItem } from '@bindings/WebhookQueueItem';
 import { WebhookQueueStats } from '@bindings/WebhookQueueStats';
 import { STORAGE_KEYS } from '@common/constants/storage-keys';
+import { safeStorageGetItem, safeStorageSetItem } from '@common/utils/safeLocalStorage';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 
 export class LocalStorageWebhookQueuePersistence implements IWebhookQueuePersistence {
   private loadQueue(): WebhookQueueItem[] {
-    const data = localStorage.getItem(STORAGE_KEYS.WEBHOOK_QUEUE);
+    const data = safeStorageGetItem(STORAGE_KEYS.WEBHOOK_QUEUE);
     if (!data) return [];
     try {
       const parsed = JSON.parse(data) as Array<
@@ -33,7 +34,7 @@ export class LocalStorageWebhookQueuePersistence implements IWebhookQueuePersist
       const serialized = JSON.stringify(queue, (_key, value) =>
         typeof value === 'bigint' ? Number(value) : value
       );
-      localStorage.setItem(STORAGE_KEYS.WEBHOOK_QUEUE, serialized);
+      safeStorageSetItem(STORAGE_KEYS.WEBHOOK_QUEUE, serialized);
     } catch (e) {
       ErrorHandler.handle(
         new PersistenceException(

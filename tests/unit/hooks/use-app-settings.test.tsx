@@ -152,6 +152,73 @@ describe('useAppSettings', () => {
     expect(result.current.layoutVariant).toBe('medium');
   });
 
+  it('should render medium on mobile viewport without clobbering persisted full layout preference', async () => {
+    // Arrange
+    localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+      theme: 'dark',
+      guiVariant: 'full',
+      textAndIconSize: 'medium',
+      autoStart: false,
+      includePatchesInReports: true,
+      activeSinks: ['Csv'],
+      alwaysOnTopSmall: false,
+      alwaysOnTopMain: false,
+      minimizeToTray: false,
+    }));
+
+    const desktopCapabilities: PlatformCapabilities = {
+      dragRegionProps: {},
+      canInspectDatabase: false,
+      supportedLayouts: ['medium', 'full'],
+      defaultLayout: 'full',
+      supportsTray: false,
+      supportsAlwaysOnTop: false,
+      supportsAutoStart: false,
+      isPwaInstallable: true,
+    };
+
+    const mobileCapabilities: PlatformCapabilities = {
+      ...desktopCapabilities,
+      supportedLayouts: ['medium'],
+      defaultLayout: 'medium',
+    };
+
+    let currentCaps = desktopCapabilities;
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <PlatformCapabilitiesContext.Provider value={currentCaps}>
+        {children}
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    const { result, rerender } = renderHook(() => useAppSettings(), { wrapper });
+    await waitFor(() => {
+      expect(result.current.layoutVariant).toBe('full');
+    });
+
+    // Act: shrink viewport to mobile (<768px)
+    currentCaps = mobileCapabilities;
+    rerender();
+
+    await waitFor(() => {
+      expect(result.current.layoutVariant).toBe('medium');
+    });
+
+    // Persisted guiVariant must still be 'full'
+    const persistedDuringMobile = JSON.parse(
+      localStorage.getItem('timelog_persistence_plugin_settings') || '{}'
+    );
+    expect(persistedDuringMobile.guiVariant).toBe('full');
+
+    // Act: expand viewport back to desktop (>=768px)
+    currentCaps = desktopCapabilities;
+    rerender();
+
+    // Assert: desktop restores 'full'
+    await waitFor(() => {
+      expect(result.current.layoutVariant).toBe('full');
+    });
+  });
+
   it('should update localStorage when textAndIconSize changes', async () => {
     // Arrange
     const { result } = renderHook(() => useAppSettings());

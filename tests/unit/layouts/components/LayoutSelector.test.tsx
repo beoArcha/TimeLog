@@ -112,4 +112,16 @@ describe('LayoutSelector', () => {
     // Assert
     expect(setLayoutVariant).toHaveBeenCalledWith('medium');
   });
+
+  it('should render nothing when supportedLayouts contains only a single layout', () => {
+    // Arrange
+    const supportedLayouts: LayoutVariant[] = ['medium'];
+
+    // Act
+    const { renderResult } = renderSelector({ supportedLayouts }, { layoutVariant: 'medium' });
+
+    // Assert
+    expect(renderResult.container.firstChild).toBeNull();
+    expect(screen.queryByTestId('layout-variant-medium')).toBeNull();
+  });
 });

@@ -107,7 +107,7 @@ Accessibility is an essential aspect of UX, ensuring effortless control for ever
 
 Localization must be instantaneous, robust, and zero-distraction:
 
-- Real-time locale switching across 6 supported languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) without application reloads.
+- Real-time locale switching across 10 supported languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `uk`, `ja`, `nl`, `it`) without application reloads.
 - Automatic fallback: If a user translation is missing, the interface falls back to standard dictionaries seamlessly without layout jumping or placeholder breakage.
 - Consistent domain terminology across the Graphical User Interface (GUI), Command Line Interface (CLI), and system tray.
 

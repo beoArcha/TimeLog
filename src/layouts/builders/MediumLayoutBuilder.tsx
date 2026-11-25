@@ -60,16 +60,17 @@ export default function MediumLayoutBuilder({
       className="w-full flex-1 flex flex-col transition-all duration-300 min-h-0 overflow-hidden"
     >
       <VStack id="gui-container" className="flex-1 min-h-0 overflow-hidden">
-        <MediumProjectSelector
-          state={state}
-          dockPosition={dockPosition}
-          onToggleDock={toggleDock}
-        />
+        {mediumTab === 'tasks' && (
+          <MediumProjectSelector
+            state={state}
+            dockPosition={dockPosition}
+            onToggleDock={toggleDock}
+          />
+        )}
 
         <VStack
-          as="main"
+          as="section"
           id="tasks-main"
-          role="main"
           aria-label="Main content"
           gap="sm"
           className="flex-1 min-h-0 overflow-y-auto pr-0.5"

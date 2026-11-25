@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import DaemonStatusBar from '@layouts/components/DaemonStatusBar';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
@@ -12,43 +12,58 @@ describe('DaemonStatusBar', () => {
     vi.restoreAllMocks();
   });
 
-  it('should render the tray minimize button when supportsTray is true and handleMinimizeToTray is provided', () => {
+  it('should render nothing when native daemon is ready', () => {
     // Arrange
-    const handleMinimizeToTray = vi.fn();
-    const mockState = getMockOXyFlowState();
+    const mockState = { ...getMockOXyFlowState(), engineState: 'ready' as const };
 
     // Act
-    render(
+    const { container } = render(
       <MockProviders
         state={mockState}
-        windowShellState={{ handleMinimizeToTray }}
-        capabilitiesState={{ supportsTray: true }}
+        capabilitiesState={{ supportsTray: true, hasNativeDaemon: true }}
       >
         <DaemonStatusBar />
       </MockProviders>
     );
 
     // Assert
-    expect(screen.getByTestId('minimize-tray-shortcut')).toBeDefined();
+    expect(container.firstChild).toBeNull();
+    expect(container.querySelector('#engine-ready-status-bar')).toBeNull();
   });
 
-  it('should omit the tray minimize button when supportsTray is false', () => {
+  it('should render nothing in browser PWA mode even while connecting', () => {
     // Arrange
-    const handleMinimizeToTray = vi.fn();
-    const mockState = getMockOXyFlowState();
+    const mockState = { ...getMockOXyFlowState(), engineState: 'connecting' as const };
 
     // Act
-    render(
+    const { container } = render(
       <MockProviders
         state={mockState}
-        windowShellState={{ handleMinimizeToTray }}
-        capabilitiesState={{ supportsTray: false }}
+        capabilitiesState={{ supportsTray: false, hasNativeDaemon: false }}
       >
         <DaemonStatusBar />
       </MockProviders>
     );
 
     // Assert
-    expect(screen.queryByTestId('minimize-tray-shortcut')).toBeNull();
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('should render connecting status bar when native daemon is connecting', () => {
+    // Arrange
+    const mockState = { ...getMockOXyFlowState(), engineState: 'connecting' as const };
+
+    // Act
+    const { container } = render(
+      <MockProviders
+        state={mockState}
+        capabilitiesState={{ supportsTray: true, hasNativeDaemon: true }}
+      >
+        <DaemonStatusBar />
+      </MockProviders>
+    );
+
+    // Assert
+    expect(container.querySelector('#engine-connecting-status-bar')).not.toBeNull();
   });
 });

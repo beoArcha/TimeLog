@@ -1,6 +1,7 @@
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { STORAGE_KEYS, DOMAIN_STORAGE_KEYS, StorageDomain, StorageResetScope } from '@common/constants/storage-keys';
+import { safeStorageGetItem, safeStorageSetItem, safeStorageRemoveItem } from '@common/utils/safeLocalStorage';
 
 import { migrateLocalStorageState } from '../migrations/localStorageMigrator';
 
@@ -65,7 +66,7 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
   }
 
   async load(): Promise<TimerRepositoryState | null> {
-    const data = localStorage.getItem(STORAGE_KEYS.STORAGE_KEY);
+    const data = safeStorageGetItem(STORAGE_KEYS.STORAGE_KEY);
     if (!data) {
       const cleanState = getDefaultState();
       await this.save(cleanState);
@@ -78,7 +79,7 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
       if (migrated._migrated) {
         delete migrated._migrated;
         try {
-          localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(migrated));
+          safeStorageSetItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(migrated));
         } catch {
           // Ignore quota or write errors during passive migration write-back;
           // return in-memory migrated state.
@@ -109,7 +110,7 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
     }
 
     try {
-      localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(state));
+      safeStorageSetItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(state));
       return state;
     } catch (e) {
       ErrorHandler.handle(
@@ -131,7 +132,7 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
       for (const domain of domains) {
         const keys = DOMAIN_STORAGE_KEYS[domain] || [];
         for (const key of keys) {
-          localStorage.removeItem(key);
+          safeStorageRemoveItem(key);
         }
       }
 

@@ -247,7 +247,7 @@ export function TaskMetrics({
               aria-label={tTask('AddSubtask')}
             >
               <Plus className="w-3.5 h-3.5 text-primary" />{' '}
-              <span className={isCondensed ? 'hidden xs:inline' : ''}>
+              <span className={isCondensed ? 'hidden sm:inline' : ''}>
                 {tTask('SubtaskLabel')}
               </span>
             </Button>

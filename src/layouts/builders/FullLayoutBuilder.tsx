@@ -25,9 +25,8 @@ export default function FullLayoutBuilder({ state }: FullLayoutBuilderProps) {
       <Sidebar state={state} />
 
       <VStack
-        as="main"
+        as="section"
         id="tasks-main"
-        role="main"
         aria-label="Main content"
         gap="md"
         className="lg:col-span-8 min-w-0 w-full"

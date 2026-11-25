@@ -1,30 +1,31 @@
 import { IUiStatePersistence } from '@common/persistence/IPersistence';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { STORAGE_KEYS } from '@common/constants/storage-keys';
+import { safeStorageGetItem, safeStorageSetItem, safeStorageRemoveItem } from '@common/utils/safeLocalStorage';
 
 export class LocalStorageUiStatePersistence implements IUiStatePersistence {
   async getCurrentProjectId(): Promise<string | null> {
-    return localStorage.getItem(STORAGE_KEYS.CURRENT_PROJ_ID);
+    return safeStorageGetItem(STORAGE_KEYS.CURRENT_PROJ_ID);
   }
 
   async saveCurrentProjectId(id: string | null): Promise<void> {
     if (id === null) {
-      localStorage.removeItem(STORAGE_KEYS.CURRENT_PROJ_ID);
+      safeStorageRemoveItem(STORAGE_KEYS.CURRENT_PROJ_ID);
     } else {
-      localStorage.setItem(STORAGE_KEYS.CURRENT_PROJ_ID, id);
+      safeStorageSetItem(STORAGE_KEYS.CURRENT_PROJ_ID, id);
     }
   }
 
   async getLastNonCompactVariant(): Promise<string> {
-    return localStorage.getItem(STORAGE_KEYS.LAST_NON_COMPACT_VARIANT) || 'full';
+    return safeStorageGetItem(STORAGE_KEYS.LAST_NON_COMPACT_VARIANT) || 'full';
   }
 
   async saveLastNonCompactVariant(variant: string): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.LAST_NON_COMPACT_VARIANT, variant);
+    safeStorageSetItem(STORAGE_KEYS.LAST_NON_COMPACT_VARIANT, variant);
   }
 
   async getProjectOrder(): Promise<string[]> {
-    const raw = localStorage.getItem(STORAGE_KEYS.PROJECT_ORDER);
+    const raw = safeStorageGetItem(STORAGE_KEYS.PROJECT_ORDER);
     if (!raw) return [];
     try {
       const parsed = JSON.parse(raw);
@@ -47,7 +48,7 @@ export class LocalStorageUiStatePersistence implements IUiStatePersistence {
 
   async saveProjectOrder(order: string[]): Promise<void> {
     try {
-      localStorage.setItem(STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+      safeStorageSetItem(STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
     } catch (e) {
       ErrorHandler.handle(
         new PersistenceException(
@@ -61,14 +62,14 @@ export class LocalStorageUiStatePersistence implements IUiStatePersistence {
   }
 
   async getLastTrackedTaskId(): Promise<string | null> {
-    return localStorage.getItem(STORAGE_KEYS.LAST_TRACKED_TASK_ID);
+    return safeStorageGetItem(STORAGE_KEYS.LAST_TRACKED_TASK_ID);
   }
 
   async saveLastTrackedTaskId(id: string | null): Promise<void> {
     if (id === null) {
-      localStorage.removeItem(STORAGE_KEYS.LAST_TRACKED_TASK_ID);
+      safeStorageRemoveItem(STORAGE_KEYS.LAST_TRACKED_TASK_ID);
     } else {
-      localStorage.setItem(STORAGE_KEYS.LAST_TRACKED_TASK_ID, id);
+      safeStorageSetItem(STORAGE_KEYS.LAST_TRACKED_TASK_ID, id);
     }
   }
 }

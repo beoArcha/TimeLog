@@ -68,17 +68,17 @@ Layout is based on proportion and ergonomics.
 #### Layout Variants
 
 - FULL  
-  Desktop-first  
+  Desktop and large tablet workspace (`>= 768px` in Browser runtime; available in Tauri)  
   Uses ~2/3 of available space  
   Prioritizes readability and breathing room  
 
 - MEDIUM  
-  Laptop-first  
-  Uses ~1/2 of FULL (~1/3 of space)  
-  Balanced density  
+  Mobile-first (`< 768px` exclusive in Browser runtime via `PlatformCapabilities`) and optional desktop side-companion dock  
+  Uses full viewport on mobile or ~1/3 of desktop space when docked  
+  Balanced single-column density with bottom navigation  
 
 - COMPACT  
-  Minimal panel  
+  Minimal desktop panel (Tauri runtime only)  
   Uses ~1/16 of space  
   Displays only essential information  
 
@@ -267,7 +267,7 @@ Raw HTML form, layout, and table tags are strictly forbidden outside `src/compon
 
 ### Accessibility and Internationalization
 
-The interface is fully keyboard-operable and localized in 6 languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`). Translations are resolved by `translate(locale, domain, key, customTranslations)` / `useTranslation`; dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/`, each containing all 6 locales, with keys typed in `src/common/i18n/keys.ts`.
+The interface is fully keyboard-operable and localized in 10 languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `uk`, `ja`, `nl`, `it`). Translations are resolved by `translate(locale, domain, key, customTranslations)` / `useTranslation`; dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/`, each containing all 10 locales, with keys typed in `src/common/i18n/keys.ts`.
 
 The mandatory a11y and i18n rules are in [`frontend_engineering_standards.md`](../../.agents/rules/frontend_engineering_standards.md) (sections 7 and 8).
 
@@ -299,6 +299,7 @@ Layout Builders compose autonomous sub-parts rather than nesting large inline te
 - Responsive environment
 - Fluid resizing allowed
 - Safe min/max constraints required
+- Runtime capability gating: viewports `< 768px` expose only `MEDIUM` via `PlatformCapabilities` (hiding the layout switcher without clobbering saved desktop preferences); viewports `>= 768px` expose `MEDIUM` and `FULL`
 
 ---
 

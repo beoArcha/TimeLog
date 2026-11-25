@@ -86,14 +86,14 @@ export function SubtaskItem({
   const timeLogsCount = (propLogs ?? timerCtx?.logs ?? []).filter((l) => l.taskId === subTask.id).length;
 
   return (
-    <HStack
+    <div
       id={`subtask-item-${subTask.id}`}
-      justify="between"
-      gap="lg"
-      className={`py-2 px-3 rounded-xl group/sub transition-all ${isSubRunning
-        ? 'bg-primary/10 border border-primary/20'
-        : 'hover:bg-muted/80 border border-transparent text-foreground'
-        }`}
+      className={cn(
+        'py-2.5 px-3 rounded-xl group/sub transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2',
+        isSubRunning
+          ? 'bg-primary/10 border border-primary/20'
+          : 'hover:bg-muted/80 border border-transparent text-foreground'
+      )}
     >
       <HStack gap="xs" align="start" className="sm:items-center flex-1 min-w-0">
         <Button
@@ -113,7 +113,7 @@ export function SubtaskItem({
           )}
         </Button>
 
-        <HStack justify="between" align="center" className="min-w-0 flex-1 group/taskedit">
+        <div className="min-w-0 flex-1 group/taskedit">
           {isEditing ? (
             <TaskNameEditor
               taskId={subTask.id}
@@ -131,7 +131,7 @@ export function SubtaskItem({
                 as="span"
                 size="xs"
                 weight={subTask.completed ? 'normal' : 'semibold'}
-                className={cn('truncate block max-w-full', subTask.completed && 'line-through text-muted-foreground')}
+                className={cn('break-words line-clamp-2 sm:truncate block max-w-full', subTask.completed && 'line-through text-muted-foreground')}
                 title={subTask.name}
               >
                 {subTask.name}
@@ -151,63 +151,65 @@ export function SubtaskItem({
               )}
             </InlineCluster>
           )}
+        </div>
+      </HStack>
 
-          {!isEditing && (
-            <TaskActions
-              taskId={subTask.id}
-              taskName={subTask.name}
-              deleteTitle={tCommon('Delete')}
-              pencilSize="w-3 h-3"
-              trashSize="w-3 h-3"
-              onDeleteTask={onDeleteTask}
-              setEditingId={setEditingId}
-              setEditName={setEditName}
-              subtasksCount={0}
-              timeLogsCount={timeLogsCount}
-              isSubtask={true}
-              task={subTask}
-              logs={propLogs ?? timerCtx?.logs}
-            />
+      <HStack justify="between" align="center" gap="sm" className="pl-6 sm:pl-0 sm:justify-end shrink-0">
+        <HStack gap="sm" align="center" className="shrink-0">
+          <TimerDisplay
+            value={subFormattedElapsed}
+            isRunning={isSubRunning}
+            size="xs"
+            variant="pill"
+          />
+
+          {!subTask.completed && (
+            isSubRunning ? (
+              <Button
+                id={`stop-subtask-btn-${subTask.id}`}
+                variant="destructive"
+                size="icon-xs"
+                onClick={() => onStopTimer ? onStopTimer() : onStartTimer(subTask.id)}
+                title={tTimer('StopMeasurement')}
+                aria-label={tTimer('StopMeasurement')}
+                className="p-2 transition-colors cursor-pointer animate-pulse shrink-0"
+              >
+                <Square className="w-3.5 h-3.5 fill-current" />
+              </Button>
+            ) : (
+              <Button
+                id={`start-subtask-btn-${subTask.id}`}
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => onStartTimer(subTask.id)}
+                title={tTimer('StartMeasurement')}
+                aria-label={tTimer('StartMeasurement')}
+                className="text-muted-foreground hover:text-primary-foreground rounded-lg p-2 transition-all cursor-pointer shrink-0 bg-muted hover:bg-primary group-hover/sub:bg-primary group-hover/sub:text-primary-foreground text-foreground"
+              >
+                <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+              </Button>
+            )
           )}
         </HStack>
-      </HStack>
 
-      <HStack gap="md" className="shrink-0">
-        <TimerDisplay
-          value={subFormattedElapsed}
-          isRunning={isSubRunning}
-          size="xs"
-          variant="pill"
-        />
-
-        {!subTask.completed && (
-          isSubRunning ? (
-            <Button
-              id={`stop-subtask-btn-${subTask.id}`}
-              variant="destructive"
-              size="icon-xs"
-              onClick={() => onStopTimer ? onStopTimer() : onStartTimer(subTask.id)}
-              title={tTimer('StopMeasurement')}
-              aria-label={tTimer('StopMeasurement')}
-              className="p-2 transition-colors cursor-pointer animate-pulse shrink-0"
-            >
-              <Square className="w-3.5 h-3.5 fill-current" />
-            </Button>
-          ) : (
-            <Button
-              id={`start-subtask-btn-${subTask.id}`}
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onStartTimer(subTask.id)}
-              title={tTimer('StartMeasurement')}
-              aria-label={tTimer('StartMeasurement')}
-              className="text-muted-foreground hover:text-primary-foreground rounded-lg p-2 transition-all cursor-pointer shrink-0 bg-muted hover:bg-primary group-hover/sub:bg-primary group-hover/sub:text-primary-foreground text-foreground"
-            >
-              <Play className="w-3.5 h-3.5 fill-current shrink-0" />
-            </Button>
-          )
+        {!isEditing && (
+          <TaskActions
+            taskId={subTask.id}
+            taskName={subTask.name}
+            deleteTitle={tCommon('Delete')}
+            pencilSize="w-3 h-3"
+            trashSize="w-3 h-3"
+            onDeleteTask={onDeleteTask}
+            setEditingId={setEditingId}
+            setEditName={setEditName}
+            subtasksCount={0}
+            timeLogsCount={timeLogsCount}
+            isSubtask={true}
+            task={subTask}
+            logs={propLogs ?? timerCtx?.logs}
+          />
         )}
       </HStack>
-    </HStack>
+    </div>
   );
 }

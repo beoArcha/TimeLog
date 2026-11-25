@@ -75,7 +75,14 @@
     "TimezoneDesc": "Configure timezone for dates, logs, and reports. Business engine operates in UTC.",
     "TimezoneSystem": "System default",
     "TimezoneSelectAria": "Select timezone",
-    "TimezoneActive": "Active timezone: {tz}"
+    "TimezoneActive": "Active timezone: {tz}",
+    "AppearanceTitle": "Appearance & Display",
+    "AppearanceDesc": "Choose interface theme and text/icon scaling.",
+    "TextScaleLabel": "Text & Icon Size",
+    "TextScaleDesc": "Adjust visual density across the interface.",
+    "TextScaleSmall": "Small",
+    "TextScaleMedium": "Medium",
+    "TextScaleLarge": "Large"
   },
   "pl": {
     "Title": "Ustawienia Interfejsu i Aplikacji",
@@ -153,7 +160,14 @@
     "TimezoneDesc": "Ustaw strefę czasową dla dat, wpisów i raportów. Silnik wewnętrznie operuje w UTC.",
     "TimezoneSystem": "Domyślna systemu",
     "TimezoneSelectAria": "Wybierz strefę czasową",
-    "TimezoneActive": "Aktywna strefa: {tz}"
+    "TimezoneActive": "Aktywna strefa: {tz}",
+    "AppearanceTitle": "Wygląd i wyświetlanie",
+    "AppearanceDesc": "Wybierz motyw interfejsu oraz rozmiar tekstu i ikon.",
+    "TextScaleLabel": "Rozmiar tekstu i ikon",
+    "TextScaleDesc": "Dostosuj gęstość wizualną całego interfejsu.",
+    "TextScaleSmall": "Mały",
+    "TextScaleMedium": "Średni",
+    "TextScaleLarge": "Duży"
   },
   "de": {
     "Title": "Schnittstellen- & Anwendungseinstellungen",
@@ -231,7 +245,14 @@
     "TimezoneDesc": "Konfigurieren Sie die Zeitzone für Datumsangaben, Protokolle und Berichte. Die Engine arbeitet in UTC.",
     "TimezoneSystem": "Systemstandard",
     "TimezoneSelectAria": "Zeitzone auswählen",
-    "TimezoneActive": "Aktive Zeitzone: {tz}"
+    "TimezoneActive": "Aktive Zeitzone: {tz}",
+    "AppearanceTitle": "Darstellung & Anzeige",
+    "AppearanceDesc": "Wählen Sie Oberflächendesign sowie Text- und Symbolgröße.",
+    "TextScaleLabel": "Text- & Symbolgröße",
+    "TextScaleDesc": "Passen Sie die visuelle Dichte der Oberfläche an.",
+    "TextScaleSmall": "Klein",
+    "TextScaleMedium": "Mittel",
+    "TextScaleLarge": "Groß"
   },
   "es": {
     "Title": "Configuración de Interfaz y Aplicación",
@@ -309,7 +330,14 @@
     "TimezoneDesc": "Configure la zona horaria para fechas, registros e informes. El motor opera en UTC.",
     "TimezoneSystem": "Predeterminada del sistema",
     "TimezoneSelectAria": "Seleccionar zona horaria",
-    "TimezoneActive": "Zona horaria activa: {tz}"
+    "TimezoneActive": "Zona horaria activa: {tz}",
+    "AppearanceTitle": "Apariencia y visualización",
+    "AppearanceDesc": "Elige el tema de la interfaz y el tamaño de texto e iconos.",
+    "TextScaleLabel": "Tamaño de texto e iconos",
+    "TextScaleDesc": "Ajusta la densidad visual en toda la interfaz.",
+    "TextScaleSmall": "Pequeño",
+    "TextScaleMedium": "Mediano",
+    "TextScaleLarge": "Grande"
   },
   "pt-br": {
     "Title": "Configurações de Interface e Aplicativo",
@@ -387,7 +415,14 @@
     "TimezoneDesc": "Configure o fuso horário para datas, registros e relatórios. O mecanismo opera em UTC.",
     "TimezoneSystem": "Padrão do sistema",
     "TimezoneSelectAria": "Selecionar fuso horário",
-    "TimezoneActive": "Fuso horário ativo: {tz}"
+    "TimezoneActive": "Fuso horário ativo: {tz}",
+    "AppearanceTitle": "Aparência e exibição",
+    "AppearanceDesc": "Escolha o tema da interface e o tamanho do texto e dos ícones.",
+    "TextScaleLabel": "Tamanho do texto e ícones",
+    "TextScaleDesc": "Ajuste a densidade visual em toda a interface.",
+    "TextScaleSmall": "Pequeno",
+    "TextScaleMedium": "Médio",
+    "TextScaleLarge": "Grande"
   },
   "fr": {
     "Title": "Paramètres de l'Interface et de l'Application",
@@ -465,7 +500,14 @@
     "TimezoneDesc": "Configurez le fuseau horaire pour les dates, journaux et rapports. Le moteur fonctionne en UTC.",
     "TimezoneSystem": "Système par défaut",
     "TimezoneSelectAria": "Sélectionner un fuseau horaire",
-    "TimezoneActive": "Fuseau horaire actif : {tz}"
+    "TimezoneActive": "Fuseau horaire actif : {tz}",
+    "AppearanceTitle": "Apparence et affichage",
+    "AppearanceDesc": "Choisissez le thème de l'interface et la taille du texte et des icônes.",
+    "TextScaleLabel": "Taille du texte et des icônes",
+    "TextScaleDesc": "Ajustez la densité visuelle de l'interface.",
+    "TextScaleSmall": "Petit",
+    "TextScaleMedium": "Moyen",
+    "TextScaleLarge": "Grand"
   },
   "uk": {
     "Title": "Налаштування інтерфейсу та програми",
@@ -543,7 +585,14 @@
     "TimezoneDesc": "Налаштуйте часовий пояс для дат, записів та звітів. Двигун працює в UTC.",
     "TimezoneSystem": "За замовчуванням системи",
     "TimezoneSelectAria": "Виберіть часовий пояс",
-    "TimezoneActive": "Активний часовий пояс: {tz}"
+    "TimezoneActive": "Активний часовий пояс: {tz}",
+    "AppearanceTitle": "Зовнішній вигляд і відображення",
+    "AppearanceDesc": "Оберіть тему інтерфейсу та масштаб тексту й іконок.",
+    "TextScaleLabel": "Розмір тексту та іконок",
+    "TextScaleDesc": "Налаштуйте візуальну щільність інтерфейсу.",
+    "TextScaleSmall": "Малий",
+    "TextScaleMedium": "Середній",
+    "TextScaleLarge": "Великий"
   },
   "ja": {
     "Title": "インターフェース & アプリケーション設定",
@@ -621,7 +670,14 @@
     "TimezoneDesc": "日付、ログ、レポートのタイムゾーンを設定します。エンジン内部はUTCで動作します。",
     "TimezoneSystem": "システムデフォルト",
     "TimezoneSelectAria": "タイムゾーンを選択",
-    "TimezoneActive": "アクティブなタイムゾーン: {tz}"
+    "TimezoneActive": "アクティブなタイムゾーン: {tz}",
+    "AppearanceTitle": "外観と表示",
+    "AppearanceDesc": "インターフェースのテーマとテキスト・アイコンサイズを選択します。",
+    "TextScaleLabel": "テキストとアイコンのサイズ",
+    "TextScaleDesc": "インターフェース全体の表示密度を調整します。",
+    "TextScaleSmall": "小",
+    "TextScaleMedium": "中",
+    "TextScaleLarge": "大"
   },
   "nl": {
     "Title": "Interface & Applicatie-instellingen",
@@ -699,7 +755,14 @@
     "TimezoneDesc": "Configureer de tijdzone voor datums, logboeken en rapporten. De engine werkt in UTC.",
     "TimezoneSystem": "Systeemstandaard",
     "TimezoneSelectAria": "Selecteer tijdzone",
-    "TimezoneActive": "Actieve tijdzone: {tz}"
+    "TimezoneActive": "Actieve tijdzone: {tz}",
+    "AppearanceTitle": "Uiterlijk & Weergave",
+    "AppearanceDesc": "Kies het interfacethema en de schaal van tekst en pictogrammen.",
+    "TextScaleLabel": "Tekst- & pictogramgrootte",
+    "TextScaleDesc": "Pas de visuele dichtheid van de interface aan.",
+    "TextScaleSmall": "Klein",
+    "TextScaleMedium": "Normaal",
+    "TextScaleLarge": "Groot"
   },
   "it": {
     "Title": "Impostazioni interfaccia e applicazione",
@@ -777,6 +840,13 @@
     "TimezoneDesc": "Configura il fuso orario per date, registri e report. Il motore opera in UTC.",
     "TimezoneSystem": "Predefinito di sistema",
     "TimezoneSelectAria": "Seleziona fuso orario",
-    "TimezoneActive": "Fuso orario attivo: {tz}"
+    "TimezoneActive": "Fuso orario attivo: {tz}",
+    "AppearanceTitle": "Aspetto e visualizzazione",
+    "AppearanceDesc": "Scegli il tema dell'interfaccia e la dimensione di testo e icone.",
+    "TextScaleLabel": "Dimensione testo e icone",
+    "TextScaleDesc": "Regola la densità visiva dell'interfaccia.",
+    "TextScaleSmall": "Piccolo",
+    "TextScaleMedium": "Medio",
+    "TextScaleLarge": "Grande"
   }
 }

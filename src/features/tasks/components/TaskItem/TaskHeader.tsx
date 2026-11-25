@@ -8,7 +8,6 @@ import { TaskActions } from './TaskActions';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { StatusDot } from '@components/ui/status-dot';
-import { Caption } from '@components/ui/typography';
 import { useTasksSafe } from '@common/hooks/DataContext';
 import { useTaskEditing } from '../../context/TaskEditingContext';
 import { TaskStatusSelect } from '../TaskStatusSelect';
@@ -108,7 +107,7 @@ export function TaskHeader({
                   : 'text-foreground'
                 }`}
             >
-              <span className="truncate block max-w-full" title={rootTask.name}>
+              <span className="break-words line-clamp-2 sm:truncate block max-w-full" title={rootTask.name}>
                 {rootTask.name}
               </span>
               <TaskStatusSelect
@@ -137,10 +136,6 @@ export function TaskHeader({
               )}
             </span>
           )}
-
-          <Caption size="2xs" className="font-mono block mt-0.5 truncate leading-tight">
-            Entity #{rootTask.id} {isCurrentRunning || isChildRunning ? '(Active timing)' : ''}
-          </Caption>
         </div>
 
         {!isEditing && (

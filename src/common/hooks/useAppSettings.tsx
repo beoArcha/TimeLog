@@ -11,6 +11,7 @@ import { AppTabId } from '@common/types/navigation';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { toast } from 'sonner';
 import { resolveEffectiveTimezone, isValidTimezone } from '@common/utils/timeFormat';
+import { safeStorageGetItem, safeStorageSetItem } from '@common/utils/safeLocalStorage';
 
 export function validateTimezoneSetting(tz: unknown): string | null {
   if (typeof tz !== 'string') return null;
@@ -157,10 +158,7 @@ export const useAppSettings = () => {
       setTheme((loaded.theme as ThemePreference) || 'system');
       setTextAndIconSize((loaded.textAndIconSize as TextAndIconSize) || 'medium');
       const rawVariant = (loaded.guiVariant as LayoutVariant) || defaultLayout || LAYOUT_VARIANTS.FULL;
-      const initialVariant = supportedLayouts.includes(rawVariant)
-        ? rawVariant
-        : (defaultLayout || LAYOUT_VARIANTS.FULL);
-      setStoredLayoutVariant(initialVariant);
+      setStoredLayoutVariant(rawVariant);
       setAlwaysOnTopSmall(loaded.alwaysOnTopSmall ?? false);
       setAlwaysOnTopMain(loaded.alwaysOnTopMain ?? false);
       setMinimizeToTray(loaded.minimizeToTray ?? true);
@@ -197,12 +195,16 @@ export const useAppSettings = () => {
     };
   }, [defaultLayout, layoutsSignature, supportedLayouts]);
 
-  const [systemTheme, setSystemTheme] = useState<Theme>(() =>
-    window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-  );
+  const [systemTheme, setSystemTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return 'dark';
+    }
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  });
 
   useEffect(() => {
     if (theme !== 'system') return;
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
     const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
     const handleChange = () => setSystemTheme(mediaQuery.matches ? 'light' : 'dark');
     handleChange();
@@ -236,7 +238,7 @@ export const useAppSettings = () => {
         activeSinks: sysSettings.activeSinks || ['Csv'],
         theme: theme,
         textAndIconSize: textAndIconSize,
-        guiVariant: effectiveLayoutVariant,
+        guiVariant: storedLayoutVariant,
         alwaysOnTopSmall: alwaysOnTopSmall,
         alwaysOnTopMain: alwaysOnTopMain,
         minimizeToTray: minimizeToTray,
@@ -261,7 +263,7 @@ export const useAppSettings = () => {
     sysSettings,
     theme,
     textAndIconSize,
-    effectiveLayoutVariant,
+    storedLayoutVariant,
     alwaysOnTopSmall,
     alwaysOnTopMain,
     minimizeToTray,
@@ -275,12 +277,16 @@ export const useAppSettings = () => {
   }, [currentProjectId, settingsLoaded]);
 
   const [defaultProjectConcurrency, setDefaultProjectConcurrencyState] = useState<boolean>(() => {
-    return localStorage.getItem('oxy_default_project_concurrency') === 'true';
+    return safeStorageGetItem('oxy_default_project_concurrency') === 'true';
   });
 
   const setDefaultProjectConcurrency = (val: boolean) => {
     setDefaultProjectConcurrencyState(val);
-    localStorage.setItem('oxy_default_project_concurrency', String(val));
+    try {
+      safeStorageSetItem('oxy_default_project_concurrency', String(val));
+    } catch (err) {
+      ErrorHandler.handle(err);
+    }
   };
 
   const setTimezone = useCallback((val: string) => {

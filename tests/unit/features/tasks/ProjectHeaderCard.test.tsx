@@ -63,7 +63,7 @@ describe('Unit Tests: ProjectHeaderCard', () => {
     expect(setNewTaskNameSpy).toHaveBeenCalledWith('Buy Groceries');
   });
 
-  it('should render condensed total badge when isCondensed is true', () => {
+  it('should omit duplicate project header in condensed mode while keeping the add-task form', () => {
     // Arrange
     const projectBeta = aProject({
       id: 'proj_2',
@@ -72,7 +72,7 @@ describe('Unit Tests: ProjectHeaderCard', () => {
     });
 
     // Act
-    render(
+    const { container } = render(
       <ProjectHeaderCard
         selectedProject={projectBeta}
         projectDurationSeconds={1800}
@@ -86,8 +86,10 @@ describe('Unit Tests: ProjectHeaderCard', () => {
     );
 
     // Assert
-    expect(screen.getByText('Project Beta')).toBeTruthy();
-    expect(screen.getByText('00:30:00')).toBeTruthy();
+    expect(screen.queryByText('Project Beta')).toBeNull();
+    expect(screen.queryByText('00:30:00')).toBeNull();
+    expect(container.querySelector('#new-task-input')).not.toBeNull();
+    expect(container.querySelector('#add-task-btn')).not.toBeNull();
   });
 
   it('should render stats skeleton grid when loading is true', () => {

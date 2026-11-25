@@ -68,7 +68,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
     : WINDOWED_CONTENT_WIDTH;
 
   const mainAreaClass = isMedium
-    ? 'p-2.5 sm:p-4 md:p-5 overflow-hidden'
+    ? 'p-2 sm:p-4 md:p-5 overflow-hidden'
     : 'w-full px-4 sm:px-6 lg:px-8 py-5 gap-5 overflow-y-auto overflow-x-hidden';
 
   return (
@@ -82,7 +82,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
       <VStack
         data-testid="windowed-frame"
         gap="none"
-        className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex-1 min-h-0 border border-border transition-all duration-300 bg-card/50 backdrop-blur-2xl ${containerWidthClass}`}
+        className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex-1 min-h-0 border-0 sm:border sm:border-border transition-all duration-300 bg-card/50 backdrop-blur-2xl ${containerWidthClass}`}
       >
         <Header />
 
@@ -100,9 +100,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
           data-testid="layout-main"
           className={`flex-1 min-h-0 w-full z-10 flex flex-col ${mainAreaClass}`}
         >
-          <div className="shrink-0 mb-1">
-            <DaemonStatusBar />
-          </div>
+          <DaemonStatusBar />
 
           <VStack
             id="tab-viewport"

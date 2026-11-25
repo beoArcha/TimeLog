@@ -43,7 +43,7 @@ export default function Header() {
         align="center"
         justify="between"
         wrap
-        className={`gap-1.5 sm:gap-2 w-full md:w-auto ${isMediumMode ? '' : 'md:justify-end'}`}
+        className={`hidden md:flex gap-1.5 sm:gap-2 w-full md:w-auto ${isMediumMode ? '' : 'md:justify-end'}`}
       >
         {!isMediumMode && (
           <HStack align="center" className="hidden md:flex">

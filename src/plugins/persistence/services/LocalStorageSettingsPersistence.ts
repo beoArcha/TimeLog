@@ -2,6 +2,7 @@ import { ISettingsPersistence } from '@common/persistence/IPersistence';
 import { Settings } from '@bindings/Settings';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { STORAGE_KEYS } from '@common/constants/storage-keys';
+import { safeStorageGetItem, safeStorageSetItem } from '@common/utils/safeLocalStorage';
 
 const DEFAULT_SETTINGS: Settings = {
   autoStart: false,
@@ -17,7 +18,7 @@ const DEFAULT_SETTINGS: Settings = {
 
 export class LocalStorageSettingsPersistence implements ISettingsPersistence {
   async get(): Promise<Settings> {
-    const data = localStorage.getItem(STORAGE_KEYS.SETTINGS_KEY);
+    const data = safeStorageGetItem(STORAGE_KEYS.SETTINGS_KEY);
     if (!data) return DEFAULT_SETTINGS;
     try {
       return { ...DEFAULT_SETTINGS, ...JSON.parse(data) };
@@ -36,7 +37,7 @@ export class LocalStorageSettingsPersistence implements ISettingsPersistence {
 
   async save(settings: Settings): Promise<void> {
     try {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS_KEY, JSON.stringify(settings));
+      safeStorageSetItem(STORAGE_KEYS.SETTINGS_KEY, JSON.stringify(settings));
     } catch (e) {
       ErrorHandler.handle(
         new PersistenceException('Failed to save settings to LocalStorage', e, 'ERR_PERSISTENCE_SETTINGS_SAVE')

@@ -86,6 +86,7 @@ describe('Unit Tests: MediumLayoutBuilder', () => {
 
     // Initially in tasks view
     expect(screen.getByTestId('mock-task-list-view')).not.toBeNull();
+    expect(screen.getByTitle('Zmień projekt')).not.toBeNull();
 
     // Click Raporty tab
     const reportsBtn = screen.getByTestId('medium-tab-reports');
@@ -93,6 +94,7 @@ describe('Unit Tests: MediumLayoutBuilder', () => {
 
     expect(screen.getByTestId('mock-report-view')).not.toBeNull();
     expect(screen.queryByTestId('mock-task-list-view')).toBeNull();
+    expect(screen.queryByTitle('Zmień projekt')).toBeNull();
 
     // Click Ustawienia tab
     const settingsBtn = screen.getByTestId('medium-tab-settings');
@@ -101,6 +103,7 @@ describe('Unit Tests: MediumLayoutBuilder', () => {
     expect(screen.getByTestId('mock-settings-tab')).not.toBeNull();
     expect(screen.getByTestId('mock-db-inspector')).not.toBeNull();
     expect(screen.queryByTestId('mock-report-view')).toBeNull();
+    expect(screen.queryByTitle('Zmień projekt')).toBeNull();
   });
 
   it('Given dock button clicked on PC, Then it should toggle dock position', () => {

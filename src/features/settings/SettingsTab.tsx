@@ -1,5 +1,6 @@
 import React from 'react';
 import { Settings } from 'lucide-react';
+import AppearanceSettingsCard from './components/AppearanceSettingsCard';
 import LanguageSettingsCard from './components/LanguageSettingsCard';
 import TimezoneSettingsCard from './components/TimezoneSettingsCard';
 import EngineConfig from './components/EngineConfig';
@@ -16,8 +17,8 @@ export default function SettingsTab() {
   const { customTranslations, locale } = useLocale();
 
   return (
-    <div className="text-left flex flex-col gap-6 pb-10">
-      <div className="border-b border-border pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="text-left flex flex-col gap-4 sm:gap-6 pb-8 sm:pb-10">
+      <div className="border-b border-border pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <Heading level={2} className="text-lg font-bold text-foreground">
             <HStack as="span" gap="sm">
@@ -29,7 +30,8 @@ export default function SettingsTab() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:gap-6">
+        <AppearanceSettingsCard />
         <LanguageSettingsCard />
         <TimezoneSettingsCard />
         <EngineConfig />

@@ -29,6 +29,10 @@ export const LayoutSelector: React.FC = () => {
     supportedLayouts.includes(sz)
   );
 
+  if (availableSizes.length <= 1) {
+    return null;
+  }
+
   const options: SegmentedControlOption<LayoutVariant>[] = availableSizes.map((sz) => {
     const fullLabel = translate(locale, 'app', LAYOUT_KEY_MAP[sz], customTranslations);
     return {

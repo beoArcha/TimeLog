@@ -202,7 +202,15 @@ export default function ReportView({ state }: { state: GuiState }) {
   }, [displayLogs, tasks, projects, nowIso, t, reportPeriod, projectChart]);
 
   return (
-    <Area as="main" id="reports-panel" variant="card" padding="section" radius="3xl" elevation="2xl" className="backdrop-blur-md flex flex-col gap-6 transition-all duration-300">
+    <Area
+      as="section"
+      id="reports-panel"
+      variant="card"
+      padding="none"
+      radius="2xl"
+      elevation="2xl"
+      className="p-3 sm:p-6 sm:rounded-3xl backdrop-blur-md flex flex-col gap-4 sm:gap-6 transition-all duration-300"
+    >
       <ViewHeader
         badge={
           <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">

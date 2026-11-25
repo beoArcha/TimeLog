@@ -78,7 +78,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
       data-runtime={runtime}
       data-layout-variant={layoutVariant}
       data-text-size={textAndIconSize || "medium"}
-      className="h-[100dvh] max-h-screen overflow-hidden flex flex-col font-sans transition-all duration-500 relative p-1.5 sm:p-3 md:p-5 bg-background text-foreground selection:bg-orange-500/20 selection:text-orange-950"
+      className="h-[100dvh] max-h-screen overflow-hidden flex flex-col font-sans transition-all duration-500 relative p-0 sm:p-3 md:p-5 bg-background text-foreground selection:bg-orange-500/20 selection:text-orange-950"
     >
       <BackgroundGradients />
 

@@ -75,7 +75,7 @@ export function LanguageSettingsCard() {
         titleColor="text-foreground"
         defaultExpanded={true}
         headerTestId="language-settings-card-header"
-        wrapperClassName="p-6 rounded-3xl border border-border bg-card flex flex-col gap-4 text-card-foreground shadow-xs"
+        wrapperClassName="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-border bg-card flex flex-col gap-4 text-card-foreground shadow-xs"
       >
         <VStack gap="lg" className="mt-2">
           {/* Active Status & Modal Launcher */}

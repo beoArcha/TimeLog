@@ -43,11 +43,9 @@ export default function ProjectHeaderCard({
 
   return (
     <div>
-      <div
-        className={`flex flex-col ${isCondensed ? "gap-2 items-start" : "sm:flex-row sm:items-start justify-between gap-2"} border-b pb-3 mb-3 border-border`}
-      >
-        <div className={`flex-1 min-w-0 ${isCondensed ? "w-full" : ""}`}>
-          {!isCondensed && (
+      {!isCondensed && (
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 border-b pb-3 mb-3 border-border">
+          <div className="flex-1 min-w-0">
             <Badge
               variant="orange"
               size="sm"
@@ -55,39 +53,24 @@ export default function ProjectHeaderCard({
             >
               {tProject("SelectProject")}
             </Badge>
-          )}
 
-          <HStack justify="between" gap="sm" wrap>
-            <Heading
-              level={2}
-              className="font-sans font-bold flex items-center gap-2 text-title text-foreground"
-            >
-              <span
-                data-testid="project-header-color-dot"
-                className={`w-3.5 h-3.5 rounded-full shrink-0 shadow-md ${resolvedColor.bgClass}`}
-                style={resolvedColor.bgStyle}
-              />
-              <span className="truncate" title={selectedProject.name}>
-                {selectedProject.name}
-              </span>
-            </Heading>
-
-            {isCondensed && (
-              <HStack
-                gap="xs"
-                className="font-mono text-xs border border-border px-2.5 py-1 rounded-xl bg-muted/40 text-foreground"
+            <HStack justify="between" gap="sm" wrap>
+              <Heading
+                level={2}
+                className="font-sans font-bold flex items-center gap-2 text-title text-foreground"
               >
-                <TrendingUp className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                <span className="font-semibold">{tCommon("Total")}:</span>
-                <span className="font-bold text-foreground">
-                  {formatSeconds(projectDurationSeconds)}
+                <span
+                  data-testid="project-header-color-dot"
+                  className={`w-3.5 h-3.5 rounded-full shrink-0 shadow-md ${resolvedColor.bgClass}`}
+                  style={resolvedColor.bgStyle}
+                />
+                <span className="truncate" title={selectedProject.name}>
+                  {selectedProject.name}
                 </span>
-              </HStack>
-            )}
-          </HStack>
-        </div>
+              </Heading>
+            </HStack>
+          </div>
 
-        {!isCondensed && (
           <HStack
             wrap
             gap="sm"
@@ -101,8 +84,8 @@ export default function ProjectHeaderCard({
               {formatSeconds(projectDurationSeconds)}
             </span>
           </HStack>
-        )}
-      </div>
+        </div>
+      )}
 
       {loading && !isCondensed && (
         <div
@@ -167,7 +150,6 @@ export default function ProjectHeaderCard({
         layout="horizontal"
         gap="sm"
         onSubmit={onAddTaskSubmit}
-        className={isCondensed ? "mt-2" : undefined}
       >
         <Input
           id="new-task-input"
@@ -181,10 +163,12 @@ export default function ProjectHeaderCard({
           id="add-task-btn"
           type="submit"
           variant="accent"
-          className="rounded-main px-4 py-2 sm:py-2.5 min-h-[40px] text-main flex items-center justify-center gap-1.5 shrink-0"
+          title={tTask("AddTask")}
+          aria-label={tTask("AddTask")}
+          className="rounded-main px-3.5 sm:px-4 py-2 sm:py-2.5 min-h-[40px] text-main flex items-center justify-center gap-1.5 shrink-0"
         >
           <Plus className="icon-small" />{" "}
-          <span className={isCondensed ? "hidden xs:inline" : ""}>
+          <span className={isCondensed ? "hidden sm:inline" : ""}>
             {tTask("AddTask")}
           </span>
         </Button>
