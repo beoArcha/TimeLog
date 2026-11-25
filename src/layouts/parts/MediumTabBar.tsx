@@ -59,7 +59,7 @@ export default function MediumTabBar({
       >
         <TabsList
           aria-label="Navigation Tabs"
-          className="p-1.5 border-t border-border rounded-section grid grid-cols-3 gap-section w-full h-auto bg-card/95 backdrop-blur-md text-foreground justify-start"
+          className="p-1.5 border border-border rounded-section grid grid-cols-3 gap-section w-full h-auto group-data-horizontal/tabs:h-auto items-stretch bg-card/95 backdrop-blur-md text-foreground justify-start overflow-hidden"
         >
           {tabs.map((tab) => {
             const isActive = currentTab === tab.id;
@@ -71,14 +71,14 @@ export default function MediumTabBar({
                 data-testid={tab.testId}
                 onClick={() => onSelectTab(tab.id)}
                 className={cn(
-                  "flex-1 h-auto min-h-[48px] padding-section flex flex-col items-center justify-center gap-section rounded-section text-[length:var(--text-main)] transition-all cursor-pointer",
+                  "flex-1 h-full min-h-[44px] py-2 px-1.5 flex flex-col items-center justify-center gap-1 rounded-section text-[length:var(--text-main)] leading-tight transition-all cursor-pointer overflow-hidden",
                   isActive
                     ? "text-primary font-bold bg-primary/10 shadow-xs"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon className="icon-medium" />
-                <span className="text-main tracking-tight text-inherit">
+                <Icon className="icon-medium shrink-0" />
+                <span className="text-main leading-tight tracking-tight text-inherit truncate max-w-full">
                   {tab.label}
                 </span>
               </TabsTrigger>

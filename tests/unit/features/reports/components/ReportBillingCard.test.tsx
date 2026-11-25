@@ -145,4 +145,59 @@ describe('Unit Tests: ReportBillingCard', () => {
     // Assert
     expect(container.firstChild).toBeNull();
   });
+
+  it('should render stacked task cards instead of a wide table in condensed medium layout', () => {
+    // Arrange
+    const result = mockBillingResult;
+
+    // Act
+    render(<ReportBillingCard billingResult={result} isCondensed={true} />);
+
+    // Assert
+    expect(screen.getByTestId('report-billing-task-cards')).toBeTruthy();
+    expect(screen.getByTestId('report-billing-task-card-t-1')).toBeTruthy();
+    expect(screen.queryByTestId('report-billing-task-table')).toBeNull();
+    expect(screen.getByTestId('task-rate-status-t-1')).toBeTruthy();
+  });
+
+  it('should localize UNKNOWN currency summary without exposing raw UNKNOWN text', () => {
+    // Arrange
+    const unconfiguredOnlyResult: RangeBillingResult = {
+      byCurrency: {
+        UNKNOWN: {
+          currency: 'UNKNOWN',
+          totalAmount: '0.00',
+          billableDurationSeconds: 0,
+          nonBillableDurationSeconds: 0,
+          unconfiguredDurationSeconds: 9500,
+        },
+      },
+      byTask: [
+        {
+          taskId: 't-unconf',
+          taskName: 'Setup sqlite schema state machine',
+          projectId: 'p-1',
+          durationSeconds: 4800,
+          effectiveRate: null,
+          currency: null,
+          rateStatus: 'unconfigured',
+          amount: null,
+        },
+      ],
+      totalBillableSeconds: 0,
+      totalNonBillableSeconds: 0,
+      totalUnconfiguredSeconds: 9500,
+    };
+
+    // Act
+    const { container } = render(
+      <ReportBillingCard billingResult={unconfiguredOnlyResult} isCondensed={true} />
+    );
+
+    // Assert
+    const card = screen.getByTestId('report-stat-currency-UNKNOWN');
+    expect(card).toBeTruthy();
+    expect(container.textContent).not.toContain('UNKNOWN');
+    expect(card.textContent).toContain('02:38:20');
+  });
 });

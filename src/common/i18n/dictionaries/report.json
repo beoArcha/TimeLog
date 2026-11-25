@@ -89,7 +89,11 @@
     "NoTasksInProject": "No tasks in this project",
     "HierarchicalView": "Hierarchical grouped view",
     "ERR_TIMELOG_INVALID_FORMAT": "Invalid date or time format (expected YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "Timezone"
+    "TimezoneLabel": "Timezone",
+    "BillingColTask": "Task",
+    "BillingColRate": "Rate",
+    "BillingColDuration": "Duration",
+    "BillingErrorBadge": "Error"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -181,7 +185,11 @@
     "NoTasksInProject": "Brak zadań w tym projekcie",
     "HierarchicalView": "Widok hierarchiczny",
     "ERR_TIMELOG_INVALID_FORMAT": "Nieprawidłowy format daty lub czasu (oczekiwany YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "Strefa czasowa"
+    "TimezoneLabel": "Strefa czasowa",
+    "BillingColTask": "Zadanie",
+    "BillingColRate": "Stawka",
+    "BillingColDuration": "Czas trwania",
+    "BillingErrorBadge": "Błąd"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -273,7 +281,11 @@
     "NoTasksInProject": "Keine Aufgaben in diesem Projekt",
     "HierarchicalView": "Hierarchische Ansicht",
     "ERR_TIMELOG_INVALID_FORMAT": "Ungültiges Datums- oder Uhrzeitformat (erwartet YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "Zeitzone"
+    "TimezoneLabel": "Zeitzone",
+    "BillingColTask": "Aufgabe",
+    "BillingColRate": "Satz",
+    "BillingColDuration": "Dauer",
+    "BillingErrorBadge": "Fehler"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -365,7 +377,11 @@
     "NoTasksInProject": "No hay tareas en este proyecto",
     "HierarchicalView": "Vista jerárquica",
     "ERR_TIMELOG_INVALID_FORMAT": "Formato de fecha u hora no válido (se esperaba YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "Zona horaria"
+    "TimezoneLabel": "Zona horaria",
+    "BillingColTask": "Tarea",
+    "BillingColRate": "Tarifa",
+    "BillingColDuration": "Duración",
+    "BillingErrorBadge": "Error"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -457,7 +473,11 @@
     "NoTasksInProject": "Nenhuma tarefa neste projeto",
     "HierarchicalView": "Visualização hierárquica",
     "ERR_TIMELOG_INVALID_FORMAT": "Formato de data ou hora inválido (esperado YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "Fuso horário"
+    "TimezoneLabel": "Fuso horário",
+    "BillingColTask": "Tarefa",
+    "BillingColRate": "Taxa",
+    "BillingColDuration": "Duração",
+    "BillingErrorBadge": "Erro"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -549,7 +569,11 @@
     "NoTasksInProject": "Aucune tâche dans ce projet",
     "HierarchicalView": "Vue hiérarchique",
     "ERR_TIMELOG_INVALID_FORMAT": "Format de date ou d'heure non valide (attendu YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "Fuseau horaire"
+    "TimezoneLabel": "Fuseau horaire",
+    "BillingColTask": "Tâche",
+    "BillingColRate": "Taux",
+    "BillingColDuration": "Durée",
+    "BillingErrorBadge": "Erreur"
   },
   "uk": {
     "Title": "Журнал звітів",
@@ -641,7 +665,11 @@
     "NoTasksInProject": "Немає завдань у цьому проєкті",
     "HierarchicalView": "Ієрархічний вигляд",
     "ERR_TIMELOG_INVALID_FORMAT": "Недійсний формат дати або часу (очікується YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "Часовий пояс"
+    "TimezoneLabel": "Часовий пояс",
+    "BillingColTask": "Завдання",
+    "BillingColRate": "Ставка",
+    "BillingColDuration": "Тривалість",
+    "BillingErrorBadge": "Помилка"
   },
   "ja": {
     "Title": "レポートログ",
@@ -733,7 +761,11 @@
     "NoTasksInProject": "このプロジェクトにタスクはありません",
     "HierarchicalView": "階層表示",
     "ERR_TIMELOG_INVALID_FORMAT": "無効な日付または時刻の形式です (形式: YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "タイムゾーン"
+    "TimezoneLabel": "タイムゾーン",
+    "BillingColTask": "タスク",
+    "BillingColRate": "レート",
+    "BillingColDuration": "所要時間",
+    "BillingErrorBadge": "エラー"
   },
   "nl": {
     "Title": "Rapportagelogs",
@@ -825,7 +857,11 @@
     "NoTasksInProject": "Geen taken in dit project",
     "HierarchicalView": "Hiërarchische weergave",
     "ERR_TIMELOG_INVALID_FORMAT": "Ongeldige datum- of tijdnotatie (verwacht YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "Tijdzone"
+    "TimezoneLabel": "Tijdzone",
+    "BillingColTask": "Taak",
+    "BillingColRate": "Tarief",
+    "BillingColDuration": "Duur",
+    "BillingErrorBadge": "Fout"
   },
   "it": {
     "Title": "Rapporti e Registri",
@@ -917,6 +953,10 @@
     "NoTasksInProject": "Nessuna attività in questo progetto",
     "HierarchicalView": "Vista gerarchica",
     "ERR_TIMELOG_INVALID_FORMAT": "Formato di data o ora non valido (previsto YYYY-MM-DD HH:mm:ss)",
-    "TimezoneLabel": "Fuso orario"
+    "TimezoneLabel": "Fuso orario",
+    "BillingColTask": "Attività",
+    "BillingColRate": "Tariffa",
+    "BillingColDuration": "Durata",
+    "BillingErrorBadge": "Errore"
   }
 }

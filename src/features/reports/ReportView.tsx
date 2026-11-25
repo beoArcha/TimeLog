@@ -30,7 +30,13 @@ import ReportExportModal from './components/ReportExportModal';
 import { useReportStatistics } from './hooks/useReportStatistics';
 import { extractAvailableTags } from './utils/tagFiltering';
 
-export default function ReportView({ state }: { state: GuiState }) {
+export default function ReportView({
+  state,
+  isCondensed = false,
+}: {
+  state: GuiState;
+  isCondensed?: boolean;
+}) {
   const {
     projects, tasks, logs, nowIso,
     reportPeriod, setReportPeriod, reportSort, setReportSort,
@@ -203,13 +209,17 @@ export default function ReportView({ state }: { state: GuiState }) {
 
   return (
     <Area
-      as="section"
+      as="main"
       id="reports-panel"
       variant="card"
       padding="none"
       radius="2xl"
       elevation="2xl"
-      className="p-3 sm:p-6 sm:rounded-3xl backdrop-blur-md flex flex-col gap-4 sm:gap-6 transition-all duration-300"
+      className={
+        isCondensed
+          ? 'p-3 backdrop-blur-md flex flex-col gap-4 transition-all duration-300'
+          : 'p-3 sm:p-6 sm:rounded-3xl backdrop-blur-md flex flex-col gap-4 sm:gap-6 transition-all duration-300'
+      }
     >
       <ViewHeader
         badge={
@@ -264,6 +274,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         billingResult={billingResult}
         billingError={billingError}
         isBillingLoading={isBillingLoading}
+        isCondensed={isCondensed}
         forceMountOnPrint={true}
       />
 
@@ -271,6 +282,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         billingResult={billingResult}
         billingError={billingError}
         isLoading={isBillingLoading}
+        isCondensed={isCondensed}
         forceMountOnPrint={true}
       />
 
@@ -293,7 +305,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         onClearProjects={clearReportProjects}
       />
 
-      <Grid cols={1} gap="xl" className="lg:grid-cols-2">
+      <Grid cols={1} gap="xl" className={isCondensed ? undefined : 'lg:grid-cols-2'}>
         <StackedBarActivityChart
           clampedLogs={clampedLogs}
           projects={projects}

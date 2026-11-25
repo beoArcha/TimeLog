@@ -82,7 +82,7 @@ export default function MediumLayoutBuilder({
             </>
           )}
 
-          {mediumTab === 'reports' && <ReportView state={state} />}
+          {mediumTab === 'reports' && <ReportView state={state} isCondensed={true} />}
 
           {mediumTab === 'settings' && (
             <VStack gap="sm">

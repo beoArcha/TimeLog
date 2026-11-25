@@ -55,7 +55,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           >
             {title}
           </Text>
-          <HStack as="span" align="baseline" gap="xs">
+          <HStack as="span" align="baseline" gap="xs" className="flex-wrap">
             <MetricText as="span" size="2xl" className="tracking-tight">
               {value}
             </MetricText>
@@ -88,7 +88,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             />
           )}
           {description && (
-            <Caption as="span" size="2xs" className="text-muted-foreground truncate">
+            <Caption as="span" size="2xs" className="text-muted-foreground break-words leading-snug">
               {description}
             </Caption>
           )}
@@ -118,7 +118,7 @@ export const StatCard: React.FC<StatCardProps> = ({
     <Card
       data-testid={testId}
       className={cn(
-        'p-5 transition-all flex flex-col justify-between gap-3 bg-card border-border text-card-foreground',
+        'p-3.5 sm:p-5 transition-all flex flex-col justify-between gap-3 bg-card border-border text-card-foreground',
         className
       )}
     >

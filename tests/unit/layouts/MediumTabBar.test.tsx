@@ -36,20 +36,22 @@ describe('Unit Tests: MediumTabBar', () => {
     expect(onSelectTab).toHaveBeenCalledWith('reports');
   });
 
-  it('should use CSS scale tokens and avoid fixed pixel/tailwind scale classes', () => {
+  it('should use CSS scale tokens and keep tab buttons contained inside the bar', () => {
     renderMediumTabBar();
 
     const tabsList = screen.getByRole('tablist');
     expect(tabsList.className).toContain('justify-start');
     expect(tabsList.className).toContain('gap-section');
+    expect(tabsList.className).toContain('group-data-horizontal/tabs:h-auto');
+    expect(tabsList.className).toContain('overflow-hidden');
 
     const tasksTab = screen.getByTestId('medium-tab-tasks');
     expect(tasksTab.className).toContain('text-[length:var(--text-main)]');
-    expect(tasksTab.className).toContain('padding-section');
     expect(tasksTab.className).toContain('rounded-section');
+    expect(tasksTab.className).toContain('h-full');
+    expect(tasksTab.className).toContain('min-h-[44px]');
+    expect(tasksTab.className).not.toContain('padding-section');
     expect(tasksTab.className).not.toContain('text-xs');
-    expect(tasksTab.className).not.toContain('py-1.5');
-    expect(tasksTab.className).not.toContain('px-2');
 
     const icon = tasksTab.querySelector('svg');
     expect(icon).not.toBeNull();

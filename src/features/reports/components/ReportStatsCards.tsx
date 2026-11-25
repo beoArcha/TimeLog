@@ -21,17 +21,23 @@ export interface ReportStatsCardsProps {
   currencies?: CurrencyBillingSummary[];
   billingError?: string | null;
   isBillingLoading?: boolean;
+  isCondensed?: boolean;
   forceMountOnPrint?: boolean;
 }
 
+function isUnknownCurrency(currency: string): boolean {
+  return currency === 'UNKNOWN';
+}
+
 function getCurrencyMetricValue(curr: CurrencyBillingSummary): string {
+  const unknown = isUnknownCurrency(curr.currency);
   if (curr.billableDurationSeconds > 0) {
-    return `${curr.totalAmount} ${curr.currency}`;
+    return unknown ? curr.totalAmount : `${curr.totalAmount} ${curr.currency}`;
   }
   if (curr.nonBillableDurationSeconds > 0) {
-    return `0.00 ${curr.currency}`;
+    return unknown ? '0.00' : `0.00 ${curr.currency}`;
   }
-  if (curr.unconfiguredDurationSeconds > 0) {
+  if (curr.unconfiguredDurationSeconds > 0 || unknown) {
     return '-';
   }
   return `${curr.totalAmount} ${curr.currency}`;
@@ -47,7 +53,7 @@ function getCurrencyMetricDescription(
   if (curr.nonBillableDurationSeconds > 0) {
     return `${t('NonBillableTime')}: ${formatSeconds(curr.nonBillableDurationSeconds)}`;
   }
-  if (curr.unconfiguredDurationSeconds > 0) {
+  if (curr.unconfiguredDurationSeconds > 0 || isUnknownCurrency(curr.currency)) {
     return `${t('UnconfiguredTime')}: ${formatSeconds(curr.unconfiguredDurationSeconds)}`;
   }
   return `${curr.currency} ${t('TotalAmount')}`;
@@ -73,7 +79,7 @@ function getCurrencyBadge(curr: CurrencyBillingSummary, testId?: string): React.
       />
     );
   }
-  if (curr.unconfiguredDurationSeconds > 0) {
+  if (curr.unconfiguredDurationSeconds > 0 || isUnknownCurrency(curr.currency)) {
     return (
       <CurrencyStatBadge
         rateStatus="unconfigured"
@@ -107,7 +113,7 @@ function getEmptyFinancialMetric(
       iconColor: 'text-destructive',
       badge: (
         <Badge variant="destructive" size="xs">
-          Error
+          {t('BillingErrorBadge')}
         </Badge>
       ),
     };
@@ -167,6 +173,7 @@ export default function ReportStatsCards({
   currencies,
   billingError,
   isBillingLoading,
+  isCondensed = false,
   forceMountOnPrint = false,
 }: ReportStatsCardsProps) {
   const { t } = useTranslation('report');
@@ -237,13 +244,16 @@ export default function ReportStatsCards({
     });
   } else {
     for (const curr of currencyList) {
+      const cardTitle = isUnknownCurrency(curr.currency)
+        ? t('UnconfiguredTime')
+        : `${curr.currency} ${t('TotalPeriodValue')}`;
       financialMetrics.push({
         testId: `report-stat-financial-${curr.currency}`,
-        title: `${curr.currency} ${t('TotalPeriodValue')}`,
+        title: cardTitle,
         value: getCurrencyMetricValue(curr),
         description: getCurrencyMetricDescription(curr, t as (key: string) => string),
         icon: DollarSign,
-        iconColor: 'text-emerald-500',
+        iconColor: isUnknownCurrency(curr.currency) ? 'text-amber-500' : 'text-emerald-500',
         badge: getCurrencyBadge(curr, `report-stat-currency-${curr.currency}`),
       });
     }
@@ -286,7 +296,7 @@ export default function ReportStatsCards({
       forceMountOnPrint={forceMountOnPrint}
     >
       {showActivePeriodStats && (
-        <Grid cols={1} gap="xl" className="md:grid-cols-2 lg:grid-cols-4">
+        <Grid cols={1} gap="xl" className={isCondensed ? undefined : 'md:grid-cols-2 lg:grid-cols-4'}>
           {allActiveMetrics.map((metric) => (
             <StatCard
               key={metric.testId}
@@ -302,7 +312,7 @@ export default function ReportStatsCards({
         </Grid>
       )}
 
-      <Grid cols={1} gap="xl" className="md:grid-cols-3">
+      <Grid cols={1} gap="xl" className={isCondensed ? undefined : 'md:grid-cols-3'}>
         {baselineMetrics.map((metric) => (
           <StatCard
             key={metric.testId}
